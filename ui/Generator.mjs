@@ -240,6 +240,7 @@ export class Generator {
         items = items.concat(this.getCircles(h, s, l, hv, sv, lv, circleCount));
         console.log("Done");
         items = items.sort(() => Math.random() - 0.5);
+        window.currentItems = items;
         this.renderer.drawItems(items);
     }
 

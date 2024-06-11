@@ -14,9 +14,9 @@ export function randomFromCenter(center, range, min = 0, max = 100) {
 }
 
 export function randomColor(h, s, l, hv, sv, lv) {
-    const hue = randomFromCenter(h, hv / 2, 0, 360);
-    const saturation = randomFromCenter(s, sv / 2);
-    const lightness = randomFromCenter(l, lv / 2);
+    const hue = randomFromCenter(h, hv / 2, h - (hv / 2), h + (hv / 2));
+    const saturation = randomFromCenter(s, sv / 2, s - (sv / 2), s + (sv / 2));
+    const lightness = randomFromCenter(l, lv / 2, l - (lv / 2), l + (lv / 2));
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
