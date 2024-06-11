@@ -4,10 +4,11 @@ export function random(min, max) {
 
 export function randomFromCenter(center, range, min = 0, max = 100) {
     let val = random(center - range, center + range);
-    if (val < min) {
-        val = max - (min - val);
-    } else if (val > max) {
-        val = min + (val - max);
+    while (val < min) {
+        val += max - min;
+    }
+    while (val > max) {
+        val -= max - min;
     }
     return val;
 }
