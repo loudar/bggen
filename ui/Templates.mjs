@@ -1,6 +1,26 @@
-import {create, computedSignal, signal} from "https://fjs.targoninc.com/f.mjs";
+import {create, computedSignal, signal, store} from "https://fjs.targoninc.com/f.mjs";
+import {save} from "./Utilities.mjs";
 
 export class Templates {
+    static controlPanel(generator) {
+        const elements = [];
+        generator.getControls().forEach(group => elements.push(group));
+
+        const buttonText = computedSignal(store().get("lastGenTime"), time => `(g) Generate (last took ${time}ms)`);
+        elements.push(Templates.buttonWithIcon("refresh", buttonText, () => {
+            const start = performance.now();
+            generator.generateImage();
+            store().setSignalValue("lastGenTime", performance.now() - start);
+        }));
+
+        elements.push(Templates.buttonWithIcon("file_download", "(s) Download current image", save));
+
+        return create("div")
+            .classes("control-panel", "flex-v")
+            .children(...elements)
+            .build();
+    }
+
     static buttonWithIcon(icon, text, onclick, classes = []) {
         return create("button")
             .classes("flex", ...classes)

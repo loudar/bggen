@@ -1,39 +1,32 @@
 import {Generator} from "./Generator.mjs";
+import {signal, store} from "https://fjs.targoninc.com/f.mjs";
 import {Templates} from "./Templates.mjs";
-import {computedSignal, signal, store} from "https://fjs.targoninc.com/f.mjs";
+import {save} from "./Utilities.mjs";
 
 const canvas = document.getElementById("target");
 
 store().set("lastGenTime", signal(0));
-const buttonText = computedSignal(store().get("lastGenTime"), time => `Generate (${time}ms)`);
 
-function save() {
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
-    a.download = "image.png";
-    a.click();
-}
 
 const generator = new Generator(canvas);
 const controls = document.getElementById("controls");
-generator.getControls().forEach(group => controls.appendChild(group));
-controls.appendChild(Templates.buttonWithIcon("refresh", buttonText, () => {
-    const start = performance.now();
-    generator.generateImage();
-    store().setSignalValue("lastGenTime", performance.now() - start);
-}));
-controls.appendChild(
-    Templates.buttonWithIcon("file_download", "Download", save)
-);
+controls.appendChild(Templates.controlPanel(generator));
 generator.generateImage();
 
-const generateShortcut = "g";
-const saveShortcut = "s";
+const shortcuts = {
+    generateShortcut: "g",
+    saveShortcut: "s",
+    keepCurrentItems: "k"
+};
+
 document.addEventListener("keydown", e => {
-    if (e.key === generateShortcut) {
+    if (e.key === shortcuts.generateShortcut) {
         generator.generateImage();
     }
-    if (e.key === saveShortcut) {
+    if (e.key === shortcuts.saveShortcut) {
         save();
+    }
+    if (e.key === shortcuts.keepCurrentItems) {
+        window.keepCurrentItems = !window.keepCurrentItems;
     }
 });

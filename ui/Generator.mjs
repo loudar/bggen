@@ -1,4 +1,4 @@
-import {computedSignal, create, ifjs, signal} from "https://fjs.targoninc.com/f.mjs";
+import {create, ifjs, signal} from "https://fjs.targoninc.com/f.mjs";
 import {Templates} from "./Templates.mjs";
 import {Renderer} from "./Renderer.mjs";
 import {random, randomColor, randomOf} from "./Random.mjs";
@@ -231,15 +231,21 @@ export class Generator {
         const rectangleCount = random(this.getSettingValue("rectangleCount.min"), this.getSettingValue("rectangleCount.max"));
         const circleCount = random(this.getSettingValue("circleCount.min"), this.getSettingValue("circleCount.max"));
 
-        console.log("Drawing background");
         this.renderer.drawBackground(h, s, l, hv, sv, lv);
-        console.log("Drawing rectangles");
+
         let items = [];
-        items = items.concat(this.getRectangles(h, s, l, hv, sv, lv, rectangleCount));
-        console.log("Drawing circles");
-        items = items.concat(this.getCircles(h, s, l, hv, sv, lv, circleCount));
-        console.log("Done");
-        items = items.sort(() => Math.random() - 0.5);
+        if (window.keepCurrentItems) {
+            items = window.currentItems;
+            items.forEach(item => {
+                if (item.colors) {
+                    item.colors = item.colors.map(() => randomColor(h, s, l, hv, sv, lv));
+                }
+            });
+        } else {
+            items = items.concat(this.getRectangles(h, s, l, hv, sv, lv, rectangleCount));
+            items = items.concat(this.getCircles(h, s, l, hv, sv, lv, circleCount));
+            items = items.sort(() => Math.random() - 0.5);
+        }
         window.currentItems = items;
         this.renderer.drawItems(items);
     }
