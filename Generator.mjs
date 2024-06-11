@@ -31,6 +31,31 @@ export class Generator {
         }
     }
 
+    settingsIcons = {
+        "hue.min": "colorize",
+        "hue.max": "colorize",
+        "saturation.min": "invert_colors",
+        "saturation.max": "invert_colors",
+        "lightness.min": "wb_sunny",
+        "lightness.max": "wb_sunny",
+        "hueVariation.min": "colorize",
+        "hueVariation.max": "colorize",
+        "saturationVariation.min": "invert_colors",
+        "saturationVariation.max": "invert_colors",
+        "lightnessVariation.min": "wb_sunny",
+        "lightnessVariation.max": "wb_sunny",
+        "rectangleCount.min": "crop",
+        "rectangleCount.max": "crop",
+        "rectangleWidth.min": "crop",
+        "rectangleWidth.max": "crop",
+        "rectangleHeight.min": "crop",
+        "rectangleHeight.max": "crop",
+        "circleCount.min": "panorama_fish_eye",
+        "circleCount.max": "panorama_fish_eye",
+        "circleRadius.min": "panorama_fish_eye",
+        "circleRadius.max": "panorama_fish_eye",
+    }
+
     getControlProperties() {
         return Object.keys(this.settings).map(path => {
             return this.getControlProperty(path);
@@ -44,8 +69,16 @@ export class Generator {
             .classes("control")
             .children(
                 create("label")
-                    .text(path)
-                    .build(),
+                    .classes("flex")
+                    .children(
+                        create("i")
+                            .classes("material-icons")
+                            .text(this.settingsIcons[path])
+                            .build(),
+                        create("span")
+                            .text(path)
+                            .build()
+                    ).build(),
                 create("div")
                     .classes("flex")
                     .children(
