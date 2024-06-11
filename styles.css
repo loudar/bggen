@@ -1,0 +1,78 @@
+:root {
+    --bg: #101011;
+    --bg-2: #202022;
+    --fg: #f0f0f0;
+    --fg-2: #d0d0d0;
+    --input-padding: 5px 10px;
+}
+
+body, html {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    width: 100dvw;
+    height: 100dvh;
+}
+
+body {
+    display: flex;
+    background: var(--bg);
+}
+
+canvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 1px solid var(--fg);
+    object-position: top;
+    height: max-content;
+    width: 100%;
+}
+
+.flex {
+    display: flex;
+    gap: 10px;
+}
+
+.flex > * {
+    align-self: center;
+}
+
+#controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.control {
+    display: flex;
+    justify-content: space-between;
+    background: var(--bg-2);
+    padding: var(--input-padding);
+    border-radius: 5px;
+    color: var(--fg);
+}
+
+.control-value {
+    width: 50px;
+    text-align: right;
+    padding-right: 5px;
+}
+
+button {
+    background: var(--bg-2);
+    color: var(--fg);
+    padding: var(--input-padding);
+    border: 1px solid var(--fg);
+    border-radius: 5px;
+    cursor: pointer;
+    max-width: max-content;
+}
+
+button:hover {
+    background: var(--bg);
+}
+
+.material-icons {
+    font-size: 1em !important;
+}
