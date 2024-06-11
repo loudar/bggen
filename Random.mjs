@@ -3,7 +3,7 @@ export function random(min, max) {
 }
 
 export function randomFromCenter(center, range, min = 0, max = 100) {
-    let val = this.random(center - range, center + range);
+    let val = random(center - range, center + range);
     if (val < min) {
         val = max - (min - val);
     } else if (val > max) {

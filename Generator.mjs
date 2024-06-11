@@ -183,6 +183,7 @@ export class Generator {
     }
 
     generateImage() {
+        console.log("Generating image");
         const h = random(this.getSettingValue("hue.min"), this.getSettingValue("hue.max"));
         const s = random(this.getSettingValue("saturation.min"), this.getSettingValue("saturation.max"));
         const l = random(this.getSettingValue("lightness.min"), this.getSettingValue("lightness.max"));
@@ -192,6 +193,7 @@ export class Generator {
         const rectangleCount = random(this.getSettingValue("rectangleCount.min"), this.getSettingValue("rectangleCount.max"));
         const circleCount = random(this.getSettingValue("circleCount.min"), this.getSettingValue("circleCount.max"));
 
+        console.log("Drawing background");
         this.renderer.drawBackground(h, s, l, hv, sv, lv);
         console.log("Drawing rectangles");
         let items = [];
