@@ -28,9 +28,9 @@ export class Templates {
         let contentElement;
         const setMaxHeight = () => {
             if (toggled.value) {
-                contentElement.style.maxHeight = contentElement.scrollHeight + 'px';
+                contentElement.style.display = "flex";
             } else {
-                contentElement.style.maxHeight = '0';
+                contentElement.style.display = "none";
             }
         };
 
@@ -38,6 +38,9 @@ export class Templates {
             .classes("collapsible-content")
             .id(uniqueId)
             .children(content)
+            .onclick(() => {
+                setTimeout(() => setMaxHeight(), 100);
+            })
             .build();
 
         return create("div")
@@ -58,5 +61,22 @@ export class Templates {
                     ).build(),
                 contentElement
             ).build();
+    }
+
+    static colorIndicator(h, s, l) {
+        const canvas = create("canvas")
+            .classes("color-indicator")
+            .attributes("width", "16", "height", "16")
+            .build();
+        const ctx = canvas.getContext("2d");
+        const render = () => {
+            ctx.fillStyle = `hsl(${h.value * 3.6}, ${s.value}%, ${l.value}%)`;
+            ctx.fillRect(0, 0, 16, 16);
+        }
+        h.subscribe(render);
+        s.subscribe(render);
+        l.subscribe(render);
+        render();
+        return canvas;
     }
 }

@@ -20,7 +20,7 @@ body {
     background: var(--bg);
 }
 
-canvas {
+canvas#target {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
@@ -29,6 +29,13 @@ canvas {
     height: max-content;
     width: 100%;
     margin: 10px 0 10px 10px;
+}
+
+.color-indicator {
+    height: 1em;
+    width: 1em;
+    align-self: center;
+    border-radius: 50%;
 }
 
 .no-gap {
@@ -56,9 +63,15 @@ canvas {
 }
 
 .collapsible-content {
-    max-height: 0;
-    overflow: hidden;
+    display: none;
+    overflow: auto;
     transition: max-height 0.25s ease-out;
+    flex-direction: column;
+    gap: 10px;
+}
+
+span {
+    text-wrap: nowrap;
 }
 
 .rot0 {
@@ -113,7 +126,7 @@ canvas {
 }
 
 .control-value {
-    width: 50px;
+    width: 20px;
     text-align: right;
     padding-right: 5px;
 }
