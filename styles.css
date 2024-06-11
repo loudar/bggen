@@ -4,6 +4,7 @@
     --fg: #f0f0f0;
     --fg-2: #d0d0d0;
     --input-padding: 5px 10px;
+    --input-border-radius: 5px;
 }
 
 body, html {
@@ -11,6 +12,7 @@ body, html {
     font-family: 'Roboto', sans-serif;
     width: 100dvw;
     height: 100dvh;
+    color: var(--fg);
 }
 
 body {
@@ -26,15 +28,72 @@ canvas {
     object-position: top;
     height: max-content;
     width: 100%;
+    margin: 10px 0 10px 10px;
 }
 
-.flex {
+.no-gap {
+    gap: 0;
+}
+
+.circle-toggle {
+    cursor: pointer;
+    border-radius: var(--input-border-radius);
+}
+
+.circle-toggle:hover {
+    background: var(--bg-2);
+}
+
+.collapsible-header {
+    cursor: pointer;
+}
+
+.collapsible {
+    background: var(--bg-2);
+    padding: 10px;
+    border-radius: var(--input-border-radius);
+    border: 1px solid var(--fg-2);
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+}
+
+.rot0 {
+    transform: rotate(0deg);
+}
+
+.rot90 {
+    transform: rotate(90deg);
+}
+
+.rot180 {
+    transform: rotate(180deg);
+}
+
+.rot270 {
+    transform: rotate(270deg);
+}
+
+.flex, .flex-v {
     display: flex;
     gap: 10px;
 }
 
+.flex-v {
+    flex-direction: column;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
 .flex > * {
     align-self: center;
+}
+
+.align-center {
+    align-items: center;
 }
 
 #controls {
@@ -49,7 +108,7 @@ canvas {
     justify-content: space-between;
     background: var(--bg-2);
     padding: var(--input-padding);
-    border-radius: 5px;
+    border-radius: var(--input-border-radius);
     color: var(--fg);
 }
 
@@ -73,6 +132,6 @@ button:hover {
     background: var(--bg);
 }
 
-.material-icons {
+.material-symbols-outlined {
     font-size: 1em !important;
 }

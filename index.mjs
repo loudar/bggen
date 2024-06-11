@@ -5,11 +5,11 @@ import {computedSignal, signal, store} from "https://fjs.targoninc.com/f.mjs";
 const canvas = document.getElementById("target");
 
 store().set("lastGenTime", signal(0));
-const buttonText = computedSignal(store().get("lastGenTime"), time => `Generate (${time.toFixed(2)}ms)`);
+const buttonText = computedSignal(store().get("lastGenTime"), time => `Generate (${time}ms)`);
 
 const generator = new Generator(canvas);
 const controls = document.getElementById("controls");
-generator.getControlProperties().forEach(control => controls.appendChild(control));
+generator.getControls().forEach(group => controls.appendChild(group));
 controls.appendChild(Templates.buttonWithIcon("refresh", buttonText, () => {
     const start = performance.now();
     generator.generateImage();
