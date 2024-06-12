@@ -1,4 +1,4 @@
-import {create, computedSignal, signal, store, ifjs, FjsObservable} from "https://fjs.targoninc.com/f.mjs";
+import {computedSignal, create, FjsObservable, ifjs, signal, store} from "https://fjs.targoninc.com/f.mjs";
 import {save} from "./Utilities.mjs";
 
 export class Templates {
@@ -83,9 +83,10 @@ export class Templates {
             ).build();
     }
 
-    static colorIndicator(h, s, l) {
+    static colorIndicator(h, s, l, title = "") {
         const canvas = create("canvas")
             .classes("color-indicator")
+            .title(title)
             .attributes("width", "16", "height", "16")
             .build();
         const ctx = canvas.getContext("2d");
@@ -136,9 +137,6 @@ export class Templates {
             throw new Error("Range control can't be used with FjsObservable");
         }
         const value = signal(path.startsWith("hue.") ? val / 3.6 : val);
-        if (path === "saturation.max") {
-            console.log(value.value);
-        }
 
         return create("div")
             .classes("control")
@@ -173,5 +171,39 @@ export class Templates {
                         ifjs(path.startsWith("lightness."), Templates.colorIndicator(signal(0), signal(0), value)),
                     ).build(),
             ).build();
+    }
+
+    static rangeIndicator(value, title, strokeColor = "var(--fg)") {
+        const svgSize = 50;
+        const radius = svgSize / 2;
+        const strokeWidth = svgSize * 0.25;
+        const circumference = Math.PI * radius * 2;
+        const progress = computedSignal(value, val => Math.round(circumference * ((100 - val) / 100)) + "px");
+        const padding = 0.125 * svgSize;
+
+        const svg = create("svg")
+            .classes("range-indicator")
+            .attributes("width", svgSize, "height", svgSize)
+            .attributes("viewBox", `-${padding} -${padding} ${svgSize + (padding * 2)} ${svgSize + (padding * 2)}`)
+            .styles("transform", `rotate(-90deg)`)
+            .children(
+                create("circle")
+                    .attributes(
+                        "r", radius,
+                        "cx", svgSize / 2,
+                        "cy", svgSize / 2,
+                        "stroke", strokeColor,
+                        "fill", "transparent",
+                        "stroke-width", strokeWidth + "px",
+                        "stroke-linecap", "butt",
+                        "stroke-dashoffset", progress,
+                        "stroke-dasharray", circumference + "px",
+                    ).build()
+            ).build();
+        return create("div")
+            .classes("flex", "range-indicator")
+            .children(svg)
+            .title(title)
+            .build();
     }
 }

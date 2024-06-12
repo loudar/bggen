@@ -1,4 +1,4 @@
-import {FjsObservable, signal} from "https://fjs.targoninc.com/f.mjs";
+import {create, FjsObservable, signal} from "https://fjs.targoninc.com/f.mjs";
 import {Templates} from "./Templates.mjs";
 import {Renderer} from "./Renderer.mjs";
 import {random, randomColor, randomFloat, randomOf, randomString} from "./Random.mjs";
@@ -210,6 +210,16 @@ export class Generator {
             return acc;
         }, {});
         let elements = [];
+        const colorGroup = [
+            Templates.colorIndicator(this.colors.h, this.colors.s, this.colors.l, "Base color"),
+            Templates.rangeIndicator(this.colors.hv, "Hue variation", "red"),
+            Templates.rangeIndicator(this.colors.sv, "Saturation variation", "green"),
+            Templates.rangeIndicator(this.colors.lv, "Lightness variation", "blue"),
+        ];
+        elements.push(create("div")
+            .classes("flex")
+            .children(colorGroup)
+            .build());
         for (const group in groups) {
             const hasSubgroups = groups[group].some(setting => setting.subgroup);
             if (hasSubgroups) {

@@ -31,11 +31,22 @@ canvas#target {
     margin: 10px 0 10px 10px;
 }
 
-.color-indicator {
+.color-indicator, .range-indicator {
     height: 1em;
     width: 1em;
     align-self: center;
     border-radius: 50%;
+}
+
+.color-indicator:hover, .range-indicator:hover {
+    background: var(--bg-2);
+    transform: scale(1.1);
+}
+
+svg.range-indicator {
+    border-radius: 0;
+    width: 16px;
+    height: 16px;
 }
 
 .no-gap {
