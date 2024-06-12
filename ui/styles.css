@@ -38,15 +38,19 @@ canvas#target {
     border-radius: 50%;
 }
 
-.color-indicator:hover, .range-indicator:hover {
-    background: var(--bg-2);
-    transform: scale(1.1);
-}
-
 svg.range-indicator {
     border-radius: 0;
     width: 16px;
     height: 16px;
+}
+
+.color-indicator:hover, .range-indicator-container:hover {
+    background: var(--bg-2);
+    transform: scale(1.1);
+}
+
+.range-indicator-container {
+    width: max-content;
 }
 
 .no-gap {

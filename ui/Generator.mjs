@@ -153,6 +153,30 @@ export class Generator {
                 group: "shapes",
                 subgroup: "texts",
             },
+            "waveCount.min": {
+                value: 0,
+                icon: "waves",
+                group: "shapes",
+                subgroup: "waves",
+            },
+            "waveCount.max": {
+                value: 10,
+                icon: "waves",
+                group: "shapes",
+                subgroup: "waves",
+            },
+            "waveSize.min": {
+                value: 1,
+                icon: "waves",
+                group: "shapes",
+                subgroup: "waves",
+            },
+            "waveSize.max": {
+                value: 10,
+                icon: "waves",
+                group: "shapes",
+                subgroup: "waves",
+            },
             "gridCount.min": {
                 value: 1,
                 icon: "grid_on",
@@ -188,6 +212,11 @@ export class Generator {
                 icon: "filter_list",
                 group: "other",
             },
+            "keepCurrentFilter": {
+                value: signal(false),
+                icon: "filter_list",
+                group: "other",
+            },
         };
         this.colors = {
             h: signal(0),
@@ -197,6 +226,7 @@ export class Generator {
             sv: signal(0),
             lv: signal(0),
         };
+        this.currentFilter = "none";
     }
 
     getControls() {
@@ -261,7 +291,20 @@ export class Generator {
     }
 
     getSettingCheckboxControl(path) {
-        return Templates.checkboxControl(path, this.settings[path].value, this.settings[path].icon);
+        return Templates.checkboxControl(path, this.settings[path].value, this.settings[path].icon, (checked) => {
+            if (path !== "applyRandomFilter") {
+                return;
+            }
+
+            if (checked) {
+                console.log("Applying filter " + this.currentFilter);
+                this.renderer.applyFilter(this.currentFilter);
+            } else {
+                console.log("Applying filter none");
+                this.renderer.applyFilter("none");
+            }
+            this.renderer.ctx.save();
+        });
     }
 
     getSettingRangeControl(path) {
@@ -310,6 +353,7 @@ export class Generator {
             const rectangleCount = random(this.getSettingValue("rectangleCount.min"), this.getSettingValue("rectangleCount.max"));
             const circleCount = random(this.getSettingValue("circleCount.min"), this.getSettingValue("circleCount.max"));
             const textCount = random(this.getSettingValue("textCount.min"), this.getSettingValue("textCount.max"));
+            const waveCount = random(this.getSettingValue("waveCount.min"), this.getSettingValue("waveCount.max"));
             const gridCount = random(this.getSettingValue("gridCount.min"), this.getSettingValue("gridCount.max"));
             for (let i = 0; i < gridCount; i++) {
                 const x = random(0, this.width);
@@ -324,6 +368,7 @@ export class Generator {
             items = items.concat(this.getRectangles(h, s, l, hv, sv, lv, rectangleCount, grids));
             items = items.concat(this.getCircles(h, s, l, hv, sv, lv, circleCount, grids));
             items = items.concat(this.getTexts(h, s, l, hv, sv, lv, textCount));
+            items = items.concat(this.getSineWaves(h, s, l, hv, sv, lv, waveCount));
             items = items.sort(() => Math.random() - 0.5);
         }
         window.currentData = {
@@ -338,7 +383,12 @@ export class Generator {
         this.colors.lv.value = lv;
         let filter = "none";
         if (this.getSettingValue("applyRandomFilter")) {
-            filter = this.getCanvasFilter();
+            if (this.getSettingValue("keepCurrentFilter")) {
+                filter = this.currentFilter;
+            } else {
+                filter = this.getCanvasFilter();
+                this.currentFilter = filter;
+            }
         }
         this.renderer.drawItems(items, filter);
     }
@@ -474,6 +524,23 @@ export class Generator {
             });
         }
         return texts;
+    }
+
+    getSineWaves(h, s, l, hv, sv, lv, waveCount) {
+        const waves = [];
+        for (let i = 0; i < waveCount; i++) {
+            const type = "stroke";
+            const x = random(0, this.width);
+            const y = random(0, this.height);
+            const size = random(this.getSettingValue("waveSize.min"), this.getSettingValue("waveSize.max")) / 100 * this.width;
+            const colors = this.getColorsForType(type, h, s, l, hv, sv, lv);
+            const wave = randomOf(["sine", "triangle", "square"]);
+            waves.push({
+                shape: "wave",
+                type, colors, x, y, size, wave
+            });
+        }
+        return waves;
     }
 
     getCanvasFilter() {

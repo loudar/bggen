@@ -2,6 +2,7 @@ import {random, randomColor, randomOf} from "./Random.mjs";
 
 export class Renderer {
     constructor(canvas) {
+        this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.width = canvas.width;
         this.height = canvas.height;
@@ -24,12 +25,19 @@ export class Renderer {
     drawItems(list, filter) {
         for (let i = 0; i < list.length; i++) {
             const item = list[i];
-            if (item.shape === "rectangle") {
-                this.drawRectangle(item.type, item.colors, item.x, item.y, item.width, item.height);
-            } else if (item.shape === "circle") {
-                this.drawCircle(item.type, item.colors, item.x, item.y, item.radius);
-            } else if (item.shape === "text") {
-                this.drawText(item.type, item.text, item.x, item.y, item.size, item.colors);
+            switch (item.shape) {
+                case "rectangle":
+                    this.drawRectangle(item.type, item.colors, item.x, item.y, item.width, item.height);
+                    break;
+                case "circle":
+                    this.drawCircle(item.type, item.colors, item.x, item.y, item.radius);
+                    break;
+                case "text":
+                    this.drawText(item.type, item.text, item.x, item.y, item.size, item.colors);
+                    break;
+                case "wave":
+                    this.drawWave(item.type, item.colors, item.x, item.y, item.size, item.wave);
+                    break;
             }
         }
         this.applyFilter(filter);
@@ -150,6 +158,106 @@ export class Renderer {
     }
 
     applyFilter(filter) {
-        this.ctx.filter = filter;
+        this.canvas.style.filter = filter;
+    }
+
+    drawWave(type, colors, x, y, size, wave) {
+        switch (type) {
+            case "fill":
+                this.fillWave(colors, x, y, size, wave);
+                break;
+            case "stroke":
+                this.strokeWave(colors, x, y, size, wave);
+                break;
+            case "gradient":
+                this.gradientWave(colors, x, y, size, wave);
+                break;
+        }
+    }
+
+    fillWave(colors, x, y, size, wave) {
+        this.ctx.fillStyle = colors[0];
+        this.ctx.beginPath();
+        switch (wave) {
+            case "sine":
+                this.ctx.arc(x, y, size, 0, 2 * Math.PI);
+                break;
+            case "triangle":
+                this.ctx.moveTo(x, y);
+                this.ctx.lineTo(x + size, y + size / 2);
+                this.ctx.lineTo(x, y + size);
+                break;
+            case "square":
+                this.ctx.rect(x, y, size, size);
+                break;
+        }
+        this.ctx.fill();
+    }
+
+    strokeWave(colors, x, y, size, wave) {
+        this.ctx.strokeStyle = colors[0];
+        this.ctx.beginPath();
+        let currentX = -x;
+        let currentY = y;
+        switch (wave) {
+            case "sine":
+                while (currentX < this.width) {
+                    this.ctx.arcTo(currentX, currentY - size, currentX + size, currentY + size, size / 2);
+                    this.ctx.arcTo(currentX + size, currentY + size, currentX + (size * 2), currentY - size, size / 2);
+                    currentX += size * 2;
+                }
+                break;
+            case "triangle":
+                while (currentX < this.width) {
+                    this.ctx.moveTo(currentX, currentY);
+                    currentX += size;
+                    currentY += size;
+                    this.ctx.lineTo(currentX, currentY);
+                    currentX += size;
+                    currentY -= size;
+                    this.ctx.lineTo(currentX, currentY);
+                }
+                break;
+            case "square":
+                while (currentX < this.width) {
+                    this.ctx.moveTo(currentX, currentY);
+                    this.ctx.lineTo(currentX + size, currentY);
+                    currentX += size;
+                    this.ctx.moveTo(currentX, currentY);
+                    this.ctx.lineTo(currentX, currentY + size);
+                    currentY += size;
+                    this.ctx.moveTo(currentX, currentY);
+                    this.ctx.lineTo(currentX + size, currentY);
+                    currentX += size;
+                    this.ctx.moveTo(currentX, currentY);
+                    this.ctx.lineTo(currentX, currentY - size);
+                    currentY -= size;
+                }
+                break;
+        }
+        this.ctx.stroke();
+    }
+
+    gradientWave(colors, x, y, size, wave) {
+        const gradient = this.ctx.createLinearGradient(x, y, x + size, y + size);
+        for (let i = 0; i < colors.length; i++) {
+            gradient.addColorStop(i / (colors.length - 1), colors[i]);
+        }
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        switch (wave) {
+            case "sine":
+                this.ctx.arc(x, y, size, 0, 2 * Math.PI);
+                break;
+            case "triangle":
+                this.ctx.moveTo(x, y);
+                this.ctx.lineTo(x + size, y + size / 2);
+                this.ctx.lineTo(x, y + size);
+                break;
+            case "square":
+                this.ctx.rect(x, y, size, size);
+                break;
+        }
+        this.ctx.fill();
     }
 }

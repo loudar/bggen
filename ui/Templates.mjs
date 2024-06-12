@@ -101,7 +101,7 @@ export class Templates {
         return canvas;
     }
 
-    static checkboxControl(path, val, icon) {
+    static checkboxControl(path, val, icon, onchange) {
         const value = val.constructor === FjsObservable ? val : signal(val);
         return create("div")
             .classes("control")
@@ -122,12 +122,8 @@ export class Templates {
                             .checked(value)
                             .onchange(e => {
                                 value.value = e.target.checked;
-                            })
-                            .build(),
-                        create("span")
-                            .classes("control-value")
-                            .text(value)
-                            .build(),
+                                onchange(e.target.checked);
+                            }).build(),
                     ).build(),
             ).build();
     }
@@ -201,9 +197,14 @@ export class Templates {
                     ).build()
             ).build();
         return create("div")
-            .classes("flex", "range-indicator")
-            .children(svg)
-            .title(title)
+            .classes("flex", "range-indicator-container")
+            .children(
+                svg,
+                create("span")
+                    .classes("control-value")
+                    .text(value)
+                    .build()
+            ).title(title)
             .build();
     }
 }
