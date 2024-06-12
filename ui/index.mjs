@@ -30,7 +30,3 @@ document.addEventListener("keydown", e => {
         this.generator.settings["keepCurrentItems"].value = !this.generator.settings["keepCurrentItems"].value;
     }
 });
-
-setInterval(() => {
-    generator.generateImage();
-}, 5000);
