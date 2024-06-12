@@ -7,8 +7,8 @@ const canvas = document.getElementById("target");
 
 store().set("lastGenTime", signal(0));
 
-
 const generator = new Generator(canvas);
+window.generator = generator;
 const controls = document.getElementById("controls");
 controls.appendChild(Templates.controlPanel(generator));
 generator.generateImage();
@@ -27,6 +27,6 @@ document.addEventListener("keydown", e => {
         save();
     }
     if (e.key === shortcuts.keepCurrentItems) {
-        window.keepCurrentItems = !window.keepCurrentItems;
+        this.generator.settings["keepCurrentItems"].value = !this.generator.settings["keepCurrentItems"].value;
     }
 });
