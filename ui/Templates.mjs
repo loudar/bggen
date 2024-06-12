@@ -1,4 +1,4 @@
-import {create, computedSignal, signal, store} from "https://fjs.targoninc.com/f.mjs";
+import {create, computedSignal, signal, store, ifjs, FjsObservable} from "https://fjs.targoninc.com/f.mjs";
 import {save} from "./Utilities.mjs";
 
 export class Templates {
@@ -98,5 +98,80 @@ export class Templates {
         l.subscribe(render);
         render();
         return canvas;
+    }
+
+    static checkboxControl(path, val, icon) {
+        const value = val.constructor === FjsObservable ? val : signal(val);
+        return create("div")
+            .classes("control")
+            .children(
+                create("label")
+                    .classes("flex")
+                    .children(
+                        Templates.icon(icon),
+                        create("span")
+                            .text(path)
+                            .build()
+                    ).build(),
+                create("div")
+                    .classes("flex")
+                    .children(
+                        create("input")
+                            .type("checkbox")
+                            .checked(value)
+                            .onchange(e => {
+                                value.value = e.target.checked;
+                            })
+                            .build(),
+                        create("span")
+                            .classes("control-value")
+                            .text(value)
+                            .build(),
+                    ).build(),
+            ).build();
+    }
+
+    static rangeControl(path, val, icon, onchange) {
+        if (val.constructor === FjsObservable) {
+            throw new Error("Range control can't be used with FjsObservable");
+        }
+        const value = signal(path.startsWith("hue.") ? val / 3.6 : val);
+        if (path === "saturation.max") {
+            console.log(value.value);
+        }
+
+        return create("div")
+            .classes("control")
+            .children(
+                create("label")
+                    .classes("flex")
+                    .children(
+                        Templates.icon(icon),
+                        create("span")
+                            .text(path)
+                            .build()
+                    ).build(),
+                create("div")
+                    .classes("flex")
+                    .children(
+                        create("input")
+                            .type("range")
+                            .attributes("min", 0, "max", 100, "step", 1)
+                            .value(value)
+                            .oninput(e => {
+                                const base = Number(e.target.value);
+                                onchange(e);
+                                value.value = base;
+                            })
+                            .build(),
+                        create("span")
+                            .classes("control-value")
+                            .text(value)
+                            .build(),
+                        ifjs(path.startsWith("hue."), Templates.colorIndicator(value, signal(100), signal(50))),
+                        ifjs(path.startsWith("saturation."), Templates.colorIndicator(signal(0), value, signal(50))),
+                        ifjs(path.startsWith("lightness."), Templates.colorIndicator(signal(0), signal(0), value)),
+                    ).build(),
+            ).build();
     }
 }

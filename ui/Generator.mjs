@@ -1,7 +1,7 @@
-import {create, ifjs, signal} from "https://fjs.targoninc.com/f.mjs";
+import {FjsObservable, signal} from "https://fjs.targoninc.com/f.mjs";
 import {Templates} from "./Templates.mjs";
 import {Renderer} from "./Renderer.mjs";
-import {random, randomColor, randomFloat, randomFromCenter, randomOf, randomString, randomWord} from "./Random.mjs";
+import {random, randomColor, randomFloat, randomOf, randomString} from "./Random.mjs";
 
 export class Generator {
     constructor(canvas) {
@@ -174,21 +174,29 @@ export class Generator {
                 group: "grid",
             },
             "keepCurrentItems": {
-                value: false,
+                value: signal(false),
                 icon: "save",
                 group: "other",
             },
             "keepCurrentColors": {
-                value: false,
+                value: signal(false),
                 icon: "colorize",
                 group: "other",
             },
             "applyRandomFilter": {
-                value: false,
+                value: signal(false),
                 icon: "filter_list",
                 group: "other",
             },
-        }
+        };
+        this.colors = {
+            h: signal(0),
+            s: signal(0),
+            l: signal(0),
+            hv: signal(0),
+            sv: signal(0),
+            lv: signal(0),
+        };
     }
 
     getControls() {
@@ -235,102 +243,38 @@ export class Generator {
     }
 
     getSettingControl(path) {
-        const setting = this.settings[path];
-        if (setting.value.constructor === Number) {
+        if (this.getSettingValue(path).constructor === Number) {
             return this.getSettingRangeControl(path);
-        } else if (setting.value.constructor === Boolean) {
+        } else if (this.getSettingValue(path).constructor === Boolean) {
             return this.getSettingCheckboxControl(path);
         }
     }
 
     getSettingCheckboxControl(path) {
-        const value = signal(this.settings[path].value);
-        return create("div")
-            .classes("control")
-            .children(
-                create("label")
-                    .classes("flex")
-                    .children(
-                        Templates.icon(this.settings[path].icon),
-                        create("span")
-                            .text(path)
-                            .build()
-                    ).build(),
-                create("div")
-                    .classes("flex")
-                    .children(
-                        create("input")
-                            .type("checkbox")
-                            .checked(value)
-                            .onchange(e => {
-                                this.settings[path].value = e.target.checked;
-                                value.value = e.target.checked;
-                            })
-                            .build(),
-                        create("span")
-                            .classes("control-value")
-                            .text(value)
-                            .build(),
-                    ).build(),
-            ).build();
+        return Templates.checkboxControl(path, this.settings[path].value, this.settings[path].icon);
     }
 
     getSettingRangeControl(path) {
-        const value = signal(path.startsWith("hue.") ? this.settings[path].value / 3.6 : this.settings[path].value);
-        if (path === "saturation.max") {
-            console.log(value.value);
-        }
-
-        return create("div")
-            .classes("control")
-            .children(
-                create("label")
-                    .classes("flex")
-                    .children(
-                        Templates.icon(this.settings[path].icon),
-                        create("span")
-                            .text(path)
-                            .build()
-                    ).build(),
-                create("div")
-                    .classes("flex")
-                    .children(
-                        create("input")
-                            .type("range")
-                            .attributes("min", 0, "max", 100, "step", 1)
-                            .value(value)
-                            .oninput(e => {
-                                const base = Number(e.target.value);
-                                let val = base;
-                                if (path.startsWith("hue.")) {
-                                    val = Math.round(val * 3.6);
-                                }
-                                this.settings[path].value = val;
-                                value.value = base;
-                            })
-                            .build(),
-                        create("span")
-                            .classes("control-value")
-                            .text(value)
-                            .build(),
-                        ifjs(path.startsWith("hue."), Templates.colorIndicator(value, signal(100), signal(50))),
-                        ifjs(path.startsWith("saturation."), Templates.colorIndicator(signal(0), value, signal(50))),
-                        ifjs(path.startsWith("lightness."), Templates.colorIndicator(signal(0), signal(0), value)),
-                    ).build(),
-            ).build();
+        return Templates.rangeControl(path, this.settings[path].value, this.settings[path].icon, (e) => {
+            let val = Number(e.target.value);
+            if (path.startsWith("hue.")) {
+                val = Math.round(val * 3.6);
+            }
+            this.setSettingValue(path, val);
+        });
     }
 
     generateImage() {
         console.log("Generating image");
         let h, s, l, hv, sv, lv;
-        if (this.settings["keepCurrentColors"].value) {
+        if (this.getSettingValue("keepCurrentColors")) {
             console.log("Keeping current colors");
-            h = window.currentData.colors.h;
-            s = window.currentData.colors.s;
-            l = window.currentData.colors.l;
-            hv = window.currentData.colors.hv;
-            sv = window.currentData.colors.sv;
-            lv = window.currentData.colors.lv;
+            h = this.colors.h.value;
+            s = this.colors.s.value;
+            l = this.colors.l.value;
+            hv = this.colors.hv.value;
+            sv = this.colors.sv.value;
+            lv = this.colors.lv.value;
         } else {
             h = random(this.getSettingValue("hue.min"), this.getSettingValue("hue.max"));
             s = random(this.getSettingValue("saturation.min"), this.getSettingValue("saturation.max"));
@@ -343,7 +287,7 @@ export class Generator {
         this.renderer.drawBackground(h, s, l, hv, sv, lv);
 
         let items = [], grids = [];
-        if (this.settings["keepCurrentItems"].value) {
+        if (this.getSettingValue("keepCurrentItems")) {
             console.log("Keeping current items");
             items = window.currentData.items;
             grids = window.currentData.grids;
@@ -375,10 +319,15 @@ export class Generator {
         window.currentData = {
             items,
             grids,
-            colors: { h, s, l, hv, sv, lv }
         };
+        this.colors.h.value = h;
+        this.colors.s.value = s;
+        this.colors.l.value = l;
+        this.colors.hv.value = hv;
+        this.colors.sv.value = sv;
+        this.colors.lv.value = lv;
         let filter = "none";
-        if (this.settings["applyRandomFilter"].value) {
+        if (this.getSettingValue("applyRandomFilter")) {
             filter = this.getCanvasFilter();
         }
         this.renderer.drawItems(items, filter);
@@ -474,7 +423,18 @@ export class Generator {
     }
 
     getSettingValue(path) {
+        if (this.settings[path].value.constructor === FjsObservable) {
+            return this.settings[path].value.value;
+        }
         return this.settings[path].value;
+    }
+
+    setSettingValue(path, value) {
+        if (this.settings[path].value.constructor === FjsObservable) {
+            this.settings[path].value.value = value;
+        } else {
+            this.settings[path].value = value;
+        }
     }
 
     getColorsForType(type, h, s, l, hv, sv, lv) {
