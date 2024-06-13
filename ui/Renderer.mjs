@@ -27,7 +27,7 @@ export class Renderer {
         this.drawItems(true);
     }
 
-    drawBackground(useCache = false, h, s, l, hv, sv, lv) {
+    drawBackground(useCache = false, h, s, l, t, hv, sv, lv, tv) {
         this.ctx.clearRect(0, 0, this.width, this.height);
         let colors = [], type;
         if (useCache && this.backgroundCache && this.backgroundCache.type) {
@@ -35,13 +35,17 @@ export class Renderer {
             colors = this.backgroundCache.colors;
         } else {
             type = randomOf(["fill", "gradient"]);
-            colors.push(randomColor(h, s, l, hv, sv, lv));
+            colors.push(randomColor(h, s, l, t, hv, sv, lv, tv));
             if (type === "gradient") {
                 const colorCount = random(2, 5);
                 for (let i = 0; i < colorCount; i++) {
-                    colors.push(randomColor(h, s, l, hv, sv, lv));
+                    colors.push(randomColor(h, s, l, t, hv, sv, lv, tv));
                 }
             }
+            colors = colors.map(c => {
+                c.transparency = 0;
+                return c;
+            });
         }
         if (!useCache) {
             this.backgroundCache = {
@@ -51,18 +55,20 @@ export class Renderer {
         this.drawRectangle(type, colors, 0, 0, this.width, this.height);
     }
 
-    drawItems(useCache = false, list = [], filter = "none", h, s, l, hv, sv, lv) {
+    drawItems(useCache = false, list = [], filter = "none", h, s, l, t, hv, sv, lv, tv) {
         if (useCache && this.cache.items && this.cache.filter === filter) {
             list = this.cache.items;
             filter = this.cache.filter;
             h = this.cache.h;
             s = this.cache.s;
             l = this.cache.l;
+            t = this.cache.t;
             hv = this.cache.hv;
             sv = this.cache.sv;
             lv = this.cache.lv;
+            tv = this.cache.tv;
         }
-        this.drawBackground(useCache, h, s, l, hv, sv, lv);
+        this.drawBackground(useCache, h, s, l, t, hv, sv, lv, tv);
         for (let i = 0; i < list.length; i++) {
             const item = list[i];
             switch (item.shape) {
@@ -85,7 +91,7 @@ export class Renderer {
             this.cache = {
                 items: list,
                 filter,
-                h, s, l, hv, sv, lv
+                h, s, l, t, hv, sv, lv, tv
             };
         }
     }
@@ -105,24 +111,30 @@ export class Renderer {
     }
 
     fillRectangle(colors, x, y, width, height) {
-        this.ctx.fillStyle = colors[0];
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
+        this.ctx.fillStyle = colors[0].color;
         this.ctx.fillRect(x, y, width, height);
+        this.ctx.globalAlpha = 1;
     }
 
     strokeRectangle(colors, x, y, width, height, weight) {
-        this.ctx.strokeStyle = colors[0];
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
+        this.ctx.strokeStyle = colors[0].color;
         this.ctx.lineWidth = weight;
         this.ctx.strokeRect(x, y, width, height);
+        this.ctx.globalAlpha = 1;
     }
 
     gradientRectangle(colors, x, y, width, height) {
         const gradient = this.ctx.createLinearGradient(x, y, x + width, y + height);
 
         for (let i = 0; i < colors.length; i++) {
-            gradient.addColorStop(i / (colors.length - 1), colors[i]);
+            gradient.addColorStop(i / (colors.length - 1), colors[i].color);
         }
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(x, y, width, height);
+        this.ctx.globalAlpha = 1;
     }
 
     drawCircle(type, colors, x, y, radius) {
@@ -140,35 +152,35 @@ export class Renderer {
     }
 
     fillCircle(colors, x, y, radius) {
-        this.ctx.fillStyle = colors[0];
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
+        this.ctx.fillStyle = colors[0].color;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
         this.ctx.fill();
+        this.ctx.globalAlpha = 1;
     }
 
     strokeCircle(colors, x, y, radius, weight) {
-        this.ctx.strokeStyle = colors[0];
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
+        this.ctx.strokeStyle = colors[0].color;
         this.ctx.lineWidth = weight;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
         this.ctx.stroke();
+        this.ctx.globalAlpha = 1;
     }
 
     gradientCircle(colors, x, y, radius) {
-        let gradient;
-        try {
-            gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
-        } catch (e) {
-            console.log(e, colors, x, y, radius);
-            return;
-        }
+        let gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
         for (let i = 0; i < colors.length; i++) {
-            gradient.addColorStop(i / (colors.length - 1), colors[i]);
+            gradient.addColorStop(i / (colors.length - 1), colors[i].color);
         }
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
         this.ctx.fill();
+        this.ctx.globalAlpha = 1;
     }
 
     drawText(type, text, x, y, size, color, weight) {
@@ -186,28 +198,34 @@ export class Renderer {
     }
 
     fillText(text, x, y, size, color, weight) {
-        this.ctx.fillStyle = color;
+        this.ctx.globalAlpha = color.transparency;
+        this.ctx.fillStyle = color.color;
         this.ctx.font = `${size}px sans-serif`;
         this.ctx.lineWidth = weight;
         this.ctx.fillText(text, x, y);
+        this.ctx.globalAlpha = 1;
     }
 
     strokeText(text, x, y, size, color, weight) {
-        this.ctx.strokeStyle = color;
+        this.ctx.globalAlpha = color.transparency;
+        this.ctx.strokeStyle = color.color;
         this.ctx.font = `${size}px sans-serif`;
         this.ctx.lineWidth = weight;
         this.ctx.strokeText(text, x, y);
+        this.ctx.globalAlpha = 1;
     }
 
     gradientText(text, x, y, size, colors, weight) {
         const gradient = this.ctx.createLinearGradient(x, y, x + size, y + size);
         for (let i = 0; i < colors.length; i++) {
-            gradient.addColorStop(i / (colors.length - 1), colors[i]);
+            gradient.addColorStop(i / (colors.length - 1), colors[i].color);
         }
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
         this.ctx.fillStyle = gradient;
         this.ctx.font = `${size}px sans-serif`;
         this.ctx.lineWidth = weight;
         this.ctx.fillText(text, x, y);
+        this.ctx.globalAlpha = 1;
     }
 
     applyFilter(filter) {
@@ -229,7 +247,8 @@ export class Renderer {
     }
 
     fillWave(colors, x, y, size, wave) {
-        this.ctx.fillStyle = colors[0];
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
+        this.ctx.fillStyle = colors[0].color;
         this.ctx.beginPath();
         switch (wave) {
             case "sine":
@@ -245,10 +264,12 @@ export class Renderer {
                 break;
         }
         this.ctx.fill();
+        this.ctx.globalAlpha = 1;
     }
 
     strokeWave(colors, x, y, size, wave, weight) {
-        this.ctx.strokeStyle = colors[0];
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
+        this.ctx.strokeStyle = colors[0].color;
         this.ctx.beginPath();
         this.ctx.lineWidth = weight;
         this.ctx.lineCap = "round";
@@ -257,14 +278,14 @@ export class Renderer {
         switch (wave) {
             case "sine":
                 this.ctx.moveTo(currentX, currentY);
-                while (currentX < this.width) {
+                while (currentX < this.width + size) {
                     this.ctx.arcTo(currentX, currentY - size, currentX + size, currentY + size, size / 2);
                     this.ctx.arcTo(currentX + size, currentY + size, currentX + (size * 2), currentY - size, size / 2);
                     currentX += size * 2;
                 }
                 break;
             case "triangle":
-                while (currentX < this.width) {
+                while (currentX < this.width + size) {
                     this.ctx.moveTo(currentX, currentY);
                     currentX += size;
                     currentY += size;
@@ -275,7 +296,7 @@ export class Renderer {
                 }
                 break;
             case "square":
-                while (currentX < this.width) {
+                while (currentX < this.width + size) {
                     this.ctx.moveTo(currentX, currentY);
                     this.ctx.lineTo(currentX + size, currentY);
                     currentX += size;
@@ -292,13 +313,15 @@ export class Renderer {
                 break;
         }
         this.ctx.stroke();
+        this.ctx.globalAlpha = 1;
     }
 
     gradientWave(colors, x, y, size, wave) {
         const gradient = this.ctx.createLinearGradient(x, y, x + size, y + size);
         for (let i = 0; i < colors.length; i++) {
-            gradient.addColorStop(i / (colors.length - 1), colors[i]);
+            gradient.addColorStop(i / (colors.length - 1), colors[i].color);
         }
+        this.ctx.globalAlpha = 1 - colors[0].transparency;
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         switch (wave) {
@@ -315,5 +338,6 @@ export class Renderer {
                 break;
         }
         this.ctx.fill();
+        this.ctx.globalAlpha = 1;
     }
 }

@@ -39,6 +39,16 @@ export class Generator {
                 icon: "wb_sunny",
                 group: "color",
             },
+            "transparency.min": {
+                value: 0,
+                icon: "opacity",
+                group: "color",
+            },
+            "transparency.max": {
+                value: 100,
+                icon: "opacity",
+                group: "color",
+            },
             "hueVariation.min": {
                 value: 0,
                 icon: "colorize",
@@ -67,6 +77,16 @@ export class Generator {
             "lightnessVariation.max": {
                 value: 100,
                 icon: "wb_sunny",
+                group: "variation",
+            },
+            "transparencyVariation.min": {
+                value: 0,
+                icon: "opacity",
+                group: "variation",
+            },
+            "transparencyVariation.max": {
+                value: 100,
+                icon: "opacity",
                 group: "variation",
             },
             "rectangleCount.min": {
@@ -117,6 +137,12 @@ export class Generator {
                 group: "shapes",
                 subgroup: "rectangles",
             },
+            "rectangleTypes": {
+                value: {fill: true, stroke: true, gradient: true},
+                icon: "crop_square",
+                group: "shapes",
+                subgroup: "rectangles",
+            },
             "circleCount.min": {
                 value: 0,
                 icon: "panorama_fish_eye",
@@ -153,6 +179,12 @@ export class Generator {
                 group: "shapes",
                 subgroup: "circles",
             },
+            "circleTypes": {
+                value: {fill: true, stroke: true, gradient: true},
+                icon: "panorama_fish_eye",
+                group: "shapes",
+                subgroup: "circles",
+            },
             "textCount.min": {
                 value: 0,
                 icon: "text_fields",
@@ -160,7 +192,7 @@ export class Generator {
                 subgroup: "texts",
             },
             "textCount.max": {
-                value: 10,
+                value: 5,
                 icon: "text_fields",
                 group: "shapes",
                 subgroup: "texts",
@@ -189,6 +221,12 @@ export class Generator {
                 group: "shapes",
                 subgroup: "texts",
             },
+            "textTypes": {
+                value: {fill: true, stroke: true, gradient: true},
+                icon: "text_fields",
+                group: "shapes",
+                subgroup: "texts",
+            },
             "waveCount.min": {
                 value: 0,
                 icon: "waves",
@@ -196,7 +234,7 @@ export class Generator {
                 subgroup: "waves",
             },
             "waveCount.max": {
-                value: 10,
+                value: 5,
                 icon: "waves",
                 group: "shapes",
                 subgroup: "waves",
@@ -221,6 +259,12 @@ export class Generator {
             },
             "waveThickness.max": {
                 value: 50,
+                icon: "waves",
+                group: "shapes",
+                subgroup: "waves",
+            },
+            "waveTypes": {
+                value: {fill: true, stroke: true, gradient: true},
                 icon: "waves",
                 group: "shapes",
                 subgroup: "waves",
@@ -270,9 +314,11 @@ export class Generator {
             h: signal(0),
             s: signal(0),
             l: signal(0),
+            t: signal(0),
             hv: signal(0),
             sv: signal(0),
             lv: signal(0),
+            tv: signal(0),
         };
         this.currentFilter = "none";
     }
@@ -293,6 +339,7 @@ export class Generator {
             Templates.rangeIndicator(this.colors.hv, "Hue variation", "red"),
             Templates.rangeIndicator(this.colors.sv, "Saturation variation", "green"),
             Templates.rangeIndicator(this.colors.lv, "Lightness variation", "blue"),
+            Templates.rangeIndicator(this.colors.tv, "Transparency variation", "white"),
         ];
         elements.push(create("div")
             .classes("flex")
@@ -367,22 +414,26 @@ export class Generator {
 
     generateImage() {
         console.log("Generating image");
-        let h, s, l, hv, sv, lv;
+        let h, s, l, t, hv, sv, lv, tv;
         if (this.getSettingValue("keepCurrentColors")) {
             console.log("Keeping current colors");
             h = this.colors.h.value;
             s = this.colors.s.value;
             l = this.colors.l.value;
+            t = this.colors.t.value;
             hv = this.colors.hv.value;
             sv = this.colors.sv.value;
             lv = this.colors.lv.value;
+            tv = this.colors.tv.value;
         } else {
             h = random(this.getSettingValue("hue.min"), this.getSettingValue("hue.max"));
             s = random(this.getSettingValue("saturation.min"), this.getSettingValue("saturation.max"));
             l = random(this.getSettingValue("lightness.min"), this.getSettingValue("lightness.max"));
+            t = random(this.getSettingValue("transparency.min"), this.getSettingValue("transparency.max"));
             hv = random(this.getSettingValue("hueVariation.min"), this.getSettingValue("hueVariation.max"));
             sv = random(this.getSettingValue("saturationVariation.min"), this.getSettingValue("saturationVariation.max"));
             lv = random(this.getSettingValue("lightnessVariation.min"), this.getSettingValue("lightnessVariation.max"));
+            tv = random(this.getSettingValue("transparencyVariation.min"), this.getSettingValue("transparencyVariation.max"));
         }
 
         let items = [], grids = [];
@@ -392,7 +443,7 @@ export class Generator {
             grids = window.currentData.grids;
             items.forEach(item => {
                 if (item.colors) {
-                    item.colors = item.colors.map(() => randomColor(h, s, l, hv, sv, lv));
+                    item.colors = item.colors.map(() => randomColor(h, s, l, t, hv, sv, lv, tv));
                 }
             });
         } else {
@@ -411,10 +462,10 @@ export class Generator {
                     x, y, width, height, items: []
                 });
             }
-            items = items.concat(this.getRectangles(h, s, l, hv, sv, lv, rectangleCount, grids));
-            items = items.concat(this.getCircles(h, s, l, hv, sv, lv, circleCount, grids));
-            items = items.concat(this.getTexts(h, s, l, hv, sv, lv, textCount));
-            items = items.concat(this.getWaves(h, s, l, hv, sv, lv, waveCount));
+            items = items.concat(this.getRectangles(h, s, l, t, hv, sv, lv, tv, rectangleCount, grids));
+            items = items.concat(this.getCircles(h, s, l, t, hv, sv, lv, tv, circleCount, grids));
+            items = items.concat(this.getTexts(h, s, l, t, hv, sv, lv, tv, textCount));
+            items = items.concat(this.getWaves(h, s, l, t, hv, sv, lv, tv, waveCount));
             items = items.sort(() => Math.random() - 0.5);
         }
         window.currentData = {
@@ -424,9 +475,11 @@ export class Generator {
         this.colors.h.value = h;
         this.colors.s.value = s;
         this.colors.l.value = l;
+        this.colors.t.value = t;
         this.colors.hv.value = hv;
         this.colors.sv.value = sv;
         this.colors.lv.value = lv;
+        this.colors.tv.value = tv;
         let filter = "none";
         if (this.getSettingValue("applyRandomFilter")) {
             if (this.getSettingValue("keepCurrentFilter")) {
@@ -436,10 +489,10 @@ export class Generator {
                 this.currentFilter = filter;
             }
         }
-        this.renderer.drawItems(false, items, filter, h, s, l, hv, sv, lv);
+        this.renderer.drawItems(false, items, filter, h, s, l, t, hv, sv, lv, tv);
     }
 
-    getRectangles(h, s, l, hv, sv, lv, count, grids) {
+    getRectangles(h, s, l, t, hv, sv, lv, tv, count, grids) {
         const rectangles = [];
         for (let i = 0; i < count; i++) {
             const type = randomOf(["fill", "stroke", "gradient"]);
@@ -447,7 +500,7 @@ export class Generator {
             let y = random(0, this.height);
             let width = random(this.getSettingValue("rectangleWidth.min"), this.getSettingValue("rectangleWidth.max")) / 100 * this.width
             let height = random(this.getSettingValue("rectangleHeight.min"), this.getSettingValue("rectangleHeight.max")) / 100 * this.height;
-            const colors = this.getColorsForType(type, h, s, l, hv, sv, lv);
+            const colors = this.getColorsForType(type, h, s, l, t, hv, sv, lv, tv);
             const weight = random(this.getSettingValue("rectangleWeight.min"), this.getSettingValue("rectangleWeight.max"));
 
             const isOnGrid = random(0, 1) > 0.5;
@@ -486,14 +539,14 @@ export class Generator {
         return rectangles;
     }
 
-    getCircles(h, s, l, hv, sv, lv, circleCount, grids) {
+    getCircles(h, s, l, t, hv, sv, lv, tv, circleCount, grids) {
         const circles = [];
         for (let i = 0; i < circleCount; i++) {
             const type = randomOf(["fill", "stroke", "gradient"]);
             let x = random(0, this.width);
             let y = random(0, this.height);
             let radius = random(this.getSettingValue("circleRadius.min"), this.getSettingValue("circleRadius.max")) / 100 * this.width;
-            const colors = this.getColorsForType(type, h, s, l, hv, sv, lv);
+            const colors = this.getColorsForType(type, h, s, l, t, hv, sv, lv, tv);
             const weight = random(this.getSettingValue("circleWeight.min"), this.getSettingValue("circleWeight.max"));
 
             const isOnGrid = random(0, 1) > 0.5;
@@ -545,26 +598,26 @@ export class Generator {
         }
     }
 
-    getColorsForType(type, h, s, l, hv, sv, lv) {
+    getColorsForType(type, h, s, l, t, hv, sv, lv, tv) {
         const colors = [];
-        colors.push(randomColor(h, s, l, hv, sv, lv));
+        colors.push(randomColor(h, s, l, t, hv, sv, lv, tv));
         if (type === "gradient") {
             const colorCount = random(2, 5);
             for (let i = 0; i < colorCount; i++) {
-                colors.push(randomColor(h, s, l, hv, sv, lv));
+                colors.push(randomColor(h, s, l, t, hv, sv, lv, tv));
             }
         }
         return colors;
     }
 
-    getTexts(h, s, l, hv, sv, lv, textCount) {
+    getTexts(h, s, l, t, hv, sv, lv, tv, textCount) {
         const texts = [];
         for (let i = 0; i < textCount; i++) {
             const type = randomOf(["fill", "stroke", "gradient"]);
             const x = random(0, this.width);
             const y = random(0, this.height);
             const size = random(this.getSettingValue("textSize.min"), this.getSettingValue("textSize.max")) / 100 * this.width;
-            const colors = this.getColorsForType(type, h, s, l, hv, sv, lv);
+            const colors = this.getColorsForType(type, h, s, l, t, hv, sv, lv, tv);
             const text = randomString(random(1, 10));
             const weight = random(this.getSettingValue("textWeight.min"), this.getSettingValue("textWeight.max"));
             texts.push({
@@ -575,14 +628,14 @@ export class Generator {
         return texts;
     }
 
-    getWaves(h, s, l, hv, sv, lv, waveCount) {
+    getWaves(h, s, l, t, hv, sv, lv, tv, waveCount) {
         const waves = [];
         for (let i = 0; i < waveCount; i++) {
             const type = "stroke";
             const x = random(0, this.width);
             const y = random(0, this.height);
             const size = random(this.getSettingValue("waveSize.min"), this.getSettingValue("waveSize.max")) / 100 * this.width;
-            const colors = this.getColorsForType(type, h, s, l, hv, sv, lv);
+            const colors = this.getColorsForType(type, h, s, l, t, hv, sv, lv, tv);
             const wave = randomOf(["sine", "triangle", "square"]);
             const weight = random(this.getSettingValue("waveThickness.min"), this.getSettingValue("waveThickness.max"));
             waves.push({

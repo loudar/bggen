@@ -13,11 +13,15 @@ export function randomFromCenter(center, range, min = 0, max = 100) {
     return val;
 }
 
-export function randomColor(h, s, l, hv, sv, lv) {
+export function randomColor(h, s, l, t, hv, sv, lv, tv) {
     const hue = randomFromCenter(h, hv / 2, h - (hv / 2), h + (hv / 2));
     const saturation = randomFromCenter(s, sv / 2, s - (sv / 2), s + (sv / 2));
     const lightness = randomFromCenter(l, lv / 2, l - (lv / 2), l + (lv / 2));
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    const transparency = randomFromCenter(t, tv / 2, t - (tv / 2), t + (tv / 2));
+    return {
+        color: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+        transparency: transparency / 100
+    };
 }
 
 export function randomOf(array) {
