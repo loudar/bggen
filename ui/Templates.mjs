@@ -103,27 +103,28 @@ export class Templates {
 
     static checkboxControl(path, val, icon, onchange) {
         const value = val.constructor === FjsObservable ? val : signal(val);
+        const name = path.replace(/\./g, "_");
+
         return create("div")
             .classes("control")
+            .onclick(() => {
+                value.value = !value.value;
+                onchange(value.value);
+            })
             .children(
+                create("input")
+                    .type("checkbox")
+                    .checked(value)
+                    .name(name)
+                    .build(),
                 create("label")
                     .classes("flex")
+                    .attributes("for", name)
                     .children(
                         Templates.icon(icon),
                         create("span")
                             .text(path)
                             .build()
-                    ).build(),
-                create("div")
-                    .classes("flex")
-                    .children(
-                        create("input")
-                            .type("checkbox")
-                            .checked(value)
-                            .onchange(e => {
-                                value.value = e.target.checked;
-                                onchange(e.target.checked);
-                            }).build(),
                     ).build(),
             ).build();
     }
@@ -132,22 +133,18 @@ export class Templates {
         const value = val.constructor === FjsObservable ? val : signal(val);
 
         return create("div")
-            .classes("control")
+            .classes("control", "flex")
             .children(
-                create("label")
-                    .classes("flex")
-                    .children(
-                        create("span")
-                            .text(path)
-                            .build(),
-                        create("input")
-                            .type("text")
-                            .value(value)
-                            .onchange(e => {
-                                value.value = e.target.value;
-                                onchange(e.target.value);
-                            }).build(),
-                    ).build(),
+                create("span")
+                    .text(path)
+                    .build(),
+                create("input")
+                    .type("text")
+                    .value(value)
+                    .onchange(e => {
+                        value.value = e.target.value;
+                        onchange(e.target.value);
+                    }).build(),
             ).build();
     }
 
@@ -188,6 +185,7 @@ export class Templates {
                         ifjs(path.startsWith("hue."), Templates.colorIndicator(value, signal(100), signal(50))),
                         ifjs(path.startsWith("saturation."), Templates.colorIndicator(signal(0), value, signal(50))),
                         ifjs(path.startsWith("lightness."), Templates.colorIndicator(signal(0), signal(0), value)),
+                        ifjs(path.startsWith("transparency."), Templates.colorIndicator(signal(0), signal(0), value, '')),
                     ).build(),
             ).build();
     }
