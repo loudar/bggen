@@ -17,7 +17,8 @@ const shortcuts = {
     generateShortcut: "g",
     saveShortcut: "s",
     keepCurrentItems: "k",
-    toggleAnimation: "a"
+    toggleAnimation: "a",
+    loadPreviousImage: "ArrowLeft",
 };
 
 document.addEventListener("keydown", e => {
@@ -36,6 +37,9 @@ document.addEventListener("keydown", e => {
     }
     if (e.key === shortcuts.toggleAnimation) {
         generator.renderer.animationActive = !generator.renderer.animationActive;
+    }
+    if (e.key === shortcuts.loadPreviousImage) {
+        generator.loadPreviousImage();
     }
 });
 

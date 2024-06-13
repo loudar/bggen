@@ -326,6 +326,11 @@ export class Generator {
             tv: signal(0),
         };
         this.currentFilter = "none";
+        this.resetHistory();
+    }
+
+    resetHistory() {
+        this.history = [];
     }
 
     getControls() {
@@ -502,7 +507,28 @@ export class Generator {
                 this.currentFilter = filter;
             }
         }
+        this.history = [
+            this.history[1],
+            { h, s, l, t, hv, sv, lv, tv, items, filter }
+        ];
         this.renderer.drawItems(false, items, filter, this.getSettingValue("textFont"), h, s, l, t, hv, sv, lv, tv);
+    }
+
+    loadPreviousImage(index = 0) {
+        const data = this.history[index];
+        this.colors.h.value = data.h;
+        this.colors.s.value = data.s;
+        this.colors.l.value = data.l;
+        this.colors.t.value = data.t;
+        this.colors.hv.value = data.hv;
+        this.colors.sv.value = data.sv;
+        this.colors.lv.value = data.lv;
+        this.colors.tv.value = data.tv;
+        window.currentData = {
+            items: data.items,
+            grids: data.grids
+        };
+        this.renderer.drawItems(false, data.items, data.filter, this.getSettingValue("textFont"), data.h, data.s, data.l, data.t, data.hv, data.sv, data.lv, data.tv);
     }
 
     getRectangles(h, s, l, t, hv, sv, lv, tv, count, grids) {
