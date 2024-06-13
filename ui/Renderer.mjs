@@ -67,6 +67,7 @@ export class Renderer {
             sv = this.cache.sv;
             lv = this.cache.lv;
             tv = this.cache.tv;
+            font = this.cache.font;
         }
         this.drawBackground(useCache, h, s, l, t, hv, sv, lv, tv);
         for (let i = 0; i < list.length; i++) {
@@ -91,7 +92,8 @@ export class Renderer {
             this.cache = {
                 items: list,
                 filter,
-                h, s, l, t, hv, sv, lv, tv
+                h, s, l, t, hv, sv, lv, tv,
+                font
             };
         }
     }
