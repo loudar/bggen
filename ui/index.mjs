@@ -16,7 +16,8 @@ generator.generateImage();
 const shortcuts = {
     generateShortcut: "g",
     saveShortcut: "s",
-    keepCurrentItems: "k"
+    keepCurrentItems: "k",
+    toggleAnimation: "a"
 };
 
 document.addEventListener("keydown", e => {
@@ -27,6 +28,14 @@ document.addEventListener("keydown", e => {
         save();
     }
     if (e.key === shortcuts.keepCurrentItems) {
-        this.generator.settings["keepCurrentItems"].value = !this.generator.settings["keepCurrentItems"].value;
+        generator.settings["keepCurrentItems"].value = !generator.settings["keepCurrentItems"].value;
+    }
+    if (e.key === shortcuts.toggleAnimation) {
+        generator.renderer.animationActive = !generator.renderer.animationActive;
     }
 });
+
+const fps = 30;
+setInterval(() => {
+    window.generator.renderer.animateFrame();
+}, 1000 / fps);
