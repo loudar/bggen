@@ -252,10 +252,11 @@ export class Renderer {
         this.ctx.beginPath();
         this.ctx.lineWidth = weight;
         this.ctx.lineCap = "round";
-        let currentX = -x + (this.waveOffset * size * 2);
+        let currentX = -x - (size * 2) + (this.waveOffset * size * 2);
         let currentY = y;
         switch (wave) {
             case "sine":
+                this.ctx.moveTo(currentX, currentY);
                 while (currentX < this.width) {
                     this.ctx.arcTo(currentX, currentY - size, currentX + size, currentY + size, size / 2);
                     this.ctx.arcTo(currentX + size, currentY + size, currentX + (size * 2), currentY - size, size / 2);
