@@ -128,6 +128,29 @@ export class Templates {
             ).build();
     }
 
+    static textControl(path, val, onchange) {
+        const value = val.constructor === FjsObservable ? val : signal(val);
+
+        return create("div")
+            .classes("control")
+            .children(
+                create("label")
+                    .classes("flex")
+                    .children(
+                        create("span")
+                            .text(path)
+                            .build(),
+                        create("input")
+                            .type("text")
+                            .value(value)
+                            .onchange(e => {
+                                value.value = e.target.value;
+                                onchange(e.target.value);
+                            }).build(),
+                    ).build(),
+            ).build();
+    }
+
     static rangeControl(path, val, icon, onchange) {
         if (val.constructor === FjsObservable) {
             throw new Error("Range control can't be used with FjsObservable");

@@ -309,6 +309,11 @@ export class Generator {
                 icon: "filter_list",
                 group: "other",
             },
+            "textFont": {
+                value: "sans-serif",
+                icon: "font_download",
+                group: "other"
+            }
         };
         this.colors = {
             h: signal(0),
@@ -382,7 +387,15 @@ export class Generator {
             return this.getSettingRangeControl(path);
         } else if (this.getSettingValue(path).constructor === Boolean) {
             return this.getSettingCheckboxControl(path);
+        } else if (this.getSettingValue(path).constructor === String) {
+            return this.getSettingTextControl(path);
         }
+    }
+
+    getSettingTextControl(path) {
+        return Templates.textControl(path, this.getSettingValue(path), (newValue) => {
+            this.setSettingValue(path, newValue);
+        });
     }
 
     getSettingCheckboxControl(path) {
@@ -489,7 +502,7 @@ export class Generator {
                 this.currentFilter = filter;
             }
         }
-        this.renderer.drawItems(false, items, filter, h, s, l, t, hv, sv, lv, tv);
+        this.renderer.drawItems(false, items, filter, this.getSettingValue("textFont"), h, s, l, t, hv, sv, lv, tv);
     }
 
     getRectangles(h, s, l, t, hv, sv, lv, tv, count, grids) {

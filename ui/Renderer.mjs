@@ -55,7 +55,7 @@ export class Renderer {
         this.drawRectangle(type, colors, 0, 0, this.width, this.height);
     }
 
-    drawItems(useCache = false, list = [], filter = "none", h, s, l, t, hv, sv, lv, tv) {
+    drawItems(useCache = false, list = [], filter = "none", font = "sans-serif", h, s, l, t, hv, sv, lv, tv) {
         if (useCache && this.cache.items && this.cache.filter === filter) {
             list = this.cache.items;
             filter = this.cache.filter;
@@ -79,7 +79,7 @@ export class Renderer {
                     this.drawCircle(item.type, item.colors, item.x, item.y, item.radius, item.weight);
                     break;
                 case "text":
-                    this.drawText(item.type, item.text, item.x, item.y, item.size, item.colors, item.weight);
+                    this.drawText(item.type, item.text, item.x, item.y, item.size, item.colors, item.weight, font);
                     break;
                 case "wave":
                     this.drawWave(item.type, item.colors, item.x, item.y, item.size, item.wave, item.weight);
@@ -183,46 +183,46 @@ export class Renderer {
         this.ctx.globalAlpha = 1;
     }
 
-    drawText(type, text, x, y, size, color, weight) {
+    drawText(type, text, x, y, size, color, weight, font) {
         switch (type) {
             case "fill":
-                this.fillText(text, x, y, size, color, weight);
+                this.fillText(text, x, y, size, color, weight, font);
                 break;
             case "stroke":
-                this.strokeText(text, x, y, size, color, weight);
+                this.strokeText(text, x, y, size, color, weight, font);
                 break;
             case "gradient":
-                this.gradientText(text, x, y, size, color, weight);
+                this.gradientText(text, x, y, size, color, weight, font);
                 break;
         }
     }
 
-    fillText(text, x, y, size, color, weight) {
+    fillText(text, x, y, size, color, weight, font) {
         this.ctx.globalAlpha = color.transparency;
         this.ctx.fillStyle = color.color;
-        this.ctx.font = `${size}px sans-serif`;
+        this.ctx.font = `${size}px ${font}`;
         this.ctx.lineWidth = weight;
         this.ctx.fillText(text, x, y);
         this.ctx.globalAlpha = 1;
     }
 
-    strokeText(text, x, y, size, color, weight) {
+    strokeText(text, x, y, size, color, weight, font) {
         this.ctx.globalAlpha = color.transparency;
         this.ctx.strokeStyle = color.color;
-        this.ctx.font = `${size}px sans-serif`;
+        this.ctx.font = `${size}px ${font}`;
         this.ctx.lineWidth = weight;
         this.ctx.strokeText(text, x, y);
         this.ctx.globalAlpha = 1;
     }
 
-    gradientText(text, x, y, size, colors, weight) {
+    gradientText(text, x, y, size, colors, weight, font) {
         const gradient = this.ctx.createLinearGradient(x, y, x + size, y + size);
         for (let i = 0; i < colors.length; i++) {
             gradient.addColorStop(i / (colors.length - 1), colors[i].color);
         }
         this.ctx.globalAlpha = 1 - colors[0].transparency;
         this.ctx.fillStyle = gradient;
-        this.ctx.font = `${size}px sans-serif`;
+        this.ctx.font = `${size}px ${font}`;
         this.ctx.lineWidth = weight;
         this.ctx.fillText(text, x, y);
         this.ctx.globalAlpha = 1;

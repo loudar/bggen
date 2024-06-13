@@ -21,6 +21,10 @@ const shortcuts = {
 };
 
 document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT") {
+        return;
+    }
+
     if (e.key === shortcuts.generateShortcut) {
         generator.generateImage();
     }
