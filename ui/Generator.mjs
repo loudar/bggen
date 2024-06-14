@@ -511,8 +511,9 @@ export class Generator {
         }
         const background = this.getBackground(h, s, l, t, hv, sv, lv, tv);
         this.renderer.drawItems(false, items, filter, this.getSettingValue("textFont"), background, h, s, l, t, hv, sv, lv, tv);
-        const imageData = this.renderer.getImageData();
-        this.addToHistory({ h, s, l, t, hv, sv, lv, tv, items, filter, imageData, background });
+        this.renderer.getBitmap(0.1).then(imageData => {
+            this.addToHistory({ h, s, l, t, hv, sv, lv, tv, items, filter, imageData, background });
+        });
     }
 
     getBackground(h, s, l, t, hv, sv, lv, tv) {

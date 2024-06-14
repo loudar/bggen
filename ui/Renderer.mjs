@@ -58,6 +58,7 @@ export class Renderer {
             lv = this.cache.lv;
             tv = this.cache.tv;
             font = this.cache.font;
+            background = this.cache.background;
         }
         this.drawBackground(useCache, background);
         for (let i = 0; i < list.length; i++) {
@@ -83,7 +84,8 @@ export class Renderer {
                 items: list,
                 filter,
                 h, s, l, t, hv, sv, lv, tv,
-                font
+                font,
+                background
             };
         }
     }
@@ -333,8 +335,17 @@ export class Renderer {
         this.ctx.globalAlpha = 1;
     }
 
-    getImageData() {
-        return this.ctx.getImageData(0, 0, this.width, this.height);
+    async getBitmap(scalingFactor = 1) {
+        const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+        return await this.imageDataToBitmap(imageData, this.width * scalingFactor, this.height * scalingFactor);
+    }
+
+    async imageDataToBitmap(imageData, width, height) {
+        const resizeWidth = width >> 0;
+        const resizeHeight = height >> 0;
+        return await window.createImageBitmap(imageData, 0, 0, imageData.width, imageData.height, {
+            resizeWidth, resizeHeight
+        });
     }
 
     setImageData(imageData) {

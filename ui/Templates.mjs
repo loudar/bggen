@@ -235,6 +235,22 @@ export class Templates {
 
         return create("div")
             .classes("history-panel")
+            .onwheel(e => {
+                const historyPanel = document.querySelector(".history-panel");
+                if (e.deltaX !== 0) {
+                    return;
+                }
+                const speed = 50;
+                if (e.deltaY < 0) {
+                    if (historyPanel.scrollLeft > 0) {
+                        historyPanel.scrollLeft -= speed;
+                    }
+                } else if (e.deltaY > 0) {
+                    if (historyPanel.scrollLeft < historyPanel.scrollWidth - historyPanel.clientWidth) {
+                        historyPanel.scrollLeft += speed;
+                    }
+                }
+            })
             .children(
                 signalMap(history,
                     create("div")
@@ -261,15 +277,18 @@ export class Templates {
             ).build();
     }
 
-    static canvas(imageData) {
+    static canvas(imageBitmap) {
         const canvas = create("canvas")
             .classes("canvas")
-            .width("2560")
-            .height("1440")
+            .width("256")
+            .height("144")
             .build();
 
+        /**
+         * @type {CanvasRenderingContext2D}
+         */
         const ctx = canvas.getContext("2d");
-        ctx.putImageData(imageData, 0, 0);
+        ctx.drawImage(imageBitmap, 0, 0);
         return canvas;
     }
 }
