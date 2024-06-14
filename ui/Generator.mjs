@@ -331,7 +331,7 @@ export class Generator {
 
     resetHistory() {
         this.activeHistoryIndex = signal(-1);
-        this.historyLength = 10;
+        this.historyLength = 20;
         this.history = signal([]);
     }
 
