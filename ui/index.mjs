@@ -19,6 +19,7 @@ const shortcuts = {
     generateShortcut: "g",
     saveShortcut: "s",
     keepCurrentItems: "k",
+    keepCurrentColors: "c",
     toggleAnimation: "a",
     loadPreviousImage: "ArrowLeft",
     loadNextImage: "ArrowRight",
@@ -36,7 +37,10 @@ document.addEventListener("keydown", e => {
         save();
     }
     if (e.key === shortcuts.keepCurrentItems) {
-        generator.settings["keepCurrentItems"].value = !generator.settings["keepCurrentItems"].value;
+        generator.setSettingValue("keepCurrentItems", !generator.getSettingValue("keepCurrentItems"));
+    }
+    if (e.key === shortcuts.keepCurrentColors) {
+        generator.setSettingValue("keepCurrentColors", !generator.getSettingValue("keepCurrentColors"));
     }
     if (e.key === shortcuts.toggleAnimation) {
         generator.renderer.animationActive = !generator.renderer.animationActive;
