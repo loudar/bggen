@@ -1,5 +1,3 @@
-import {random, randomColor, randomOf} from "./Random.mjs";
-
 export class Renderer {
     constructor(canvas) {
         this.canvas = canvas;
@@ -27,21 +25,13 @@ export class Renderer {
         this.drawItems(true);
     }
 
-    drawBackground(useCache = false, h, s, l, t, hv, sv, lv, tv) {
+    drawBackground(useCache = false, background) {
         this.ctx.clearRect(0, 0, this.width, this.height);
-        let colors = [], type;
+        let colors = background.colors, type = background.type;
         if (useCache && this.backgroundCache && this.backgroundCache.type) {
             type = this.backgroundCache.type;
             colors = this.backgroundCache.colors;
         } else {
-            type = randomOf(["fill", "gradient"]);
-            colors.push(randomColor(h, s, l, t, hv, sv, lv, tv));
-            if (type === "gradient") {
-                const colorCount = random(2, 5);
-                for (let i = 0; i < colorCount; i++) {
-                    colors.push(randomColor(h, s, l, t, hv, sv, lv, tv));
-                }
-            }
             colors = colors.map(c => {
                 c.transparency = 0;
                 return c;
@@ -55,7 +45,7 @@ export class Renderer {
         this.drawRectangle(type, colors, 0, 0, this.width, this.height);
     }
 
-    drawItems(useCache = false, list = [], filter = "none", font = "sans-serif", h, s, l, t, hv, sv, lv, tv) {
+    drawItems(useCache = false, list = [], filter = "none", font = "sans-serif", background, h, s, l, t, hv, sv, lv, tv) {
         if (useCache && this.cache.items && this.cache.filter === filter) {
             list = this.cache.items;
             filter = this.cache.filter;
@@ -69,7 +59,7 @@ export class Renderer {
             tv = this.cache.tv;
             font = this.cache.font;
         }
-        this.drawBackground(useCache, h, s, l, t, hv, sv, lv, tv);
+        this.drawBackground(useCache, background);
         for (let i = 0; i < list.length; i++) {
             const item = list[i];
             switch (item.shape) {
@@ -341,5 +331,13 @@ export class Renderer {
         }
         this.ctx.fill();
         this.ctx.globalAlpha = 1;
+    }
+
+    getImageData() {
+        return this.ctx.getImageData(0, 0, this.width, this.height);
+    }
+
+    setImageData(imageData) {
+        this.ctx.putImageData(imageData, 0, 0);
     }
 }

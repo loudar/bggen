@@ -330,7 +330,9 @@ export class Generator {
     }
 
     resetHistory() {
-        this.history = [];
+        this.activeHistoryIndex = signal(-1);
+        this.historyLength = 10;
+        this.history = signal([]);
     }
 
     getControls() {
@@ -507,15 +509,43 @@ export class Generator {
                 this.currentFilter = filter;
             }
         }
-        this.history = [
-            this.history[1],
-            { h, s, l, t, hv, sv, lv, tv, items, filter }
-        ];
-        this.renderer.drawItems(false, items, filter, this.getSettingValue("textFont"), h, s, l, t, hv, sv, lv, tv);
+        const background = this.getBackground(h, s, l, t, hv, sv, lv, tv);
+        this.renderer.drawItems(false, items, filter, this.getSettingValue("textFont"), background, h, s, l, t, hv, sv, lv, tv);
+        const imageData = this.renderer.getImageData();
+        this.addToHistory({ h, s, l, t, hv, sv, lv, tv, items, filter, imageData, background });
     }
 
-    loadPreviousImage(index = 0) {
-        const data = this.history[index];
+    getBackground(h, s, l, t, hv, sv, lv, tv) {
+        const type = randomOf(["fill", "gradient"]);
+        return { type, colors: this.getColorsForType(type, h, s, l, t, hv, sv, lv, tv) }
+    }
+
+    addToHistory(data) {
+        /**
+         * @type {Array}
+         */
+        const oldHistory = this.history.value;
+        oldHistory.push(data);
+        if (oldHistory.length > this.historyLength) {
+            oldHistory.shift();
+        }
+        this.history.value = oldHistory;
+        this.activeHistoryIndex.value = oldHistory.length - 1;
+    }
+
+    loadHistoryEntry(index) {
+        if (index === undefined) {
+            index = Math.max(0, this.activeHistoryIndex.value - 1);
+        }
+
+        /**
+         * @type {Array}
+         */
+        const history = this.history.value;
+        if (history.length === 0 || !history[index]) {
+            return;
+        }
+        const data = history[index];
         this.colors.h.value = data.h;
         this.colors.s.value = data.s;
         this.colors.l.value = data.l;
@@ -528,7 +558,8 @@ export class Generator {
             items: data.items,
             grids: data.grids
         };
-        this.renderer.drawItems(false, data.items, data.filter, this.getSettingValue("textFont"), data.h, data.s, data.l, data.t, data.hv, data.sv, data.lv, data.tv);
+        this.renderer.drawItems(false, data.items, data.filter, this.getSettingValue("textFont"), data.background, data.h, data.s, data.l, data.t, data.hv, data.sv, data.lv, data.tv);
+        this.activeHistoryIndex.value = index;
     }
 
     getRectangles(h, s, l, t, hv, sv, lv, tv, count, grids) {

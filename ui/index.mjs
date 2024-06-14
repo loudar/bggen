@@ -12,6 +12,8 @@ window.generator = generator;
 const controls = document.getElementById("controls");
 controls.appendChild(Templates.controlPanel(generator));
 generator.generateImage();
+const history = document.getElementById("history");
+history.appendChild(Templates.historyPanel(generator));
 
 const shortcuts = {
     generateShortcut: "g",
@@ -19,6 +21,7 @@ const shortcuts = {
     keepCurrentItems: "k",
     toggleAnimation: "a",
     loadPreviousImage: "ArrowLeft",
+    loadNextImage: "ArrowRight",
 };
 
 document.addEventListener("keydown", e => {
@@ -39,7 +42,10 @@ document.addEventListener("keydown", e => {
         generator.renderer.animationActive = !generator.renderer.animationActive;
     }
     if (e.key === shortcuts.loadPreviousImage) {
-        generator.loadPreviousImage();
+        generator.loadHistoryEntry();
+    }
+    if (e.key === shortcuts.loadNextImage) {
+        generator.loadHistoryEntry(generator.activeHistoryIndex.value + 1);
     }
 });
 

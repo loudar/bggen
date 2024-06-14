@@ -1,4 +1,4 @@
-import {computedSignal, create, FjsObservable, ifjs, signal, store} from "https://fjs.targoninc.com/f.mjs";
+import {computedSignal, create, FjsObservable, ifjs, signal, signalMap, store} from "https://fjs.targoninc.com/f.mjs";
 import {save} from "./Utilities.mjs";
 
 export class Templates {
@@ -227,5 +227,49 @@ export class Templates {
                     .build()
             ).title(title)
             .build();
+    }
+
+    static historyPanel(generator) {
+        const history = generator.history;
+        const activeIndex = generator.activeHistoryIndex;
+
+        return create("div")
+            .classes("history-panel")
+            .children(
+                signalMap(history,
+                    create("div")
+                        .classes("flex")
+                        .styles("width", "max-content"),
+                    (item) => {
+                        const index = computedSignal(history, list => list.indexOf(item));
+                        let element;
+                        const activeClass = computedSignal(activeIndex, active => {
+                            if (active === index.value && element) {
+                                element.scrollIntoView(true);
+                            }
+                            return index.value === active ? "active" : "_";
+                        });
+
+                        element = create("div")
+                            .classes("history-item", activeClass)
+                            .children(Templates.canvas(item.imageData))
+                            .onclick(() => {
+                                generator.loadHistoryEntry(index.value);
+                            }).build();
+                        return element;
+                    })
+            ).build();
+    }
+
+    static canvas(imageData) {
+        const canvas = create("canvas")
+            .classes("canvas")
+            .width("2560")
+            .height("1440")
+            .build();
+
+        const ctx = canvas.getContext("2d");
+        ctx.putImageData(imageData, 0, 0);
+        return canvas;
     }
 }

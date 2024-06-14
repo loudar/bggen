@@ -7,10 +7,16 @@
     <title>BGGEN</title>
     <script src="index.mjs" type="module"></script>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"/>
 </head>
 <body>
-<canvas id="target" width="2560" height="1440"></canvas>
-<div id="controls"></div>
+<div class="flex-v">
+    <div id="history"></div>
+    <div class="flex no-gap" prevent-center>
+        <canvas id="target" width="2560" height="1440"></canvas>
+        <div id="controls"></div>
+    </div>
+</div>
 </body>
 </html>
