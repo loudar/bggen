@@ -1,16 +1,17 @@
-import {computedSignal, create, FjsObservable, ifjs, signal, signalMap, store} from "https://fjs.targoninc.com/f.mjs";
-import {save} from "./Utilities.mjs";
+import {lastGenTime} from "./main";
+import {save} from "./Utilities";
+import {compute, create, InputType, isSignal, signal, signalMap, when} from "@targoninc/jess";
 
 export class Templates {
-    static controlPanel(generator) {
-        const elements = [];
-        generator.getControls().forEach(group => elements.push(group));
+    static controlPanel(generator: any) {
+        const elements: any[] = [];
+        generator.getControls().forEach((group: any) => elements.push(group));
 
-        const buttonText = computedSignal(store().get("lastGenTime"), time => `(g) Generate (last took ${time}ms)`);
+        const buttonText = compute((time: any) => `(g) Generate (last took ${time}ms)`, lastGenTime);
         elements.push(Templates.buttonWithIcon("refresh", buttonText, () => {
             const start = performance.now();
             generator.generateImage();
-            store().setSignalValue("lastGenTime", performance.now() - start);
+            lastGenTime.value = performance.now() - start;
         }));
 
         elements.push(Templates.buttonWithIcon("file_download", "(s) Download current image", save));
@@ -21,7 +22,7 @@ export class Templates {
             .build();
     }
 
-    static buttonWithIcon(icon, text, onclick, classes = []) {
+    static buttonWithIcon(icon: string, text: any, onclick: () => void, classes: any[] = []) {
         return create("button")
             .classes("flex", ...classes)
             .onclick(onclick)
@@ -33,19 +34,19 @@ export class Templates {
             ).build();
     }
 
-    static icon(icon, classes = []) {
+    static icon(icon: string, classes: any[] = []) {
         return create("i")
             .classes("material-symbols-outlined", ...classes)
             .text(icon)
             .build();
     }
 
-    static collapsible(text, content) {
+    static collapsible(text: string, content: any) {
         const uniqueId = Math.random().toString(36).substring(7);
         const toggled = signal(false);
-        const iconClass = computedSignal(toggled, on => on ? "rot90" : "rot0");
-        const gapClass = computedSignal(toggled, v => v ? "gap" : "no-gap");
-        let contentElement;
+        const iconClass = compute((on: boolean) => on ? "rot90" : "rot0", toggled);
+        const gapClass = compute((v: boolean) => v ? "gap" : "no-gap", toggled);
+        let contentElement: any;
         const setMaxHeight = () => {
             if (toggled.value) {
                 contentElement.style.display = "flex";
@@ -83,13 +84,13 @@ export class Templates {
             ).build();
     }
 
-    static colorIndicator(h, s, l, title = "") {
+    static colorIndicator(h: any, s: any, l: any, title = "") {
         const canvas = create("canvas")
             .classes("color-indicator")
             .title(title)
             .attributes("width", "16", "height", "16")
-            .build();
-        const ctx = canvas.getContext("2d");
+            .build() as HTMLCanvasElement;
+        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         const render = () => {
             ctx.fillStyle = `hsl(${h.value * 3.6}, ${s.value}%, ${l.value}%)`;
             ctx.fillRect(0, 0, 16, 16);
@@ -101,19 +102,19 @@ export class Templates {
         return canvas;
     }
 
-    static checkboxControl(path, val, icon, onchange) {
-        const value = val.constructor === FjsObservable ? val : signal(val);
+    static checkboxControl(path: string, val: any, icon: string, onchange: any) {
+        const value = isSignal(val) ? val : signal(val);
         const name = path.replace(/\./g, "_");
 
         return create("div")
             .classes("control")
             .onclick(() => {
                 value.value = !value.value;
-                onchange(value.value);
+                onchange?.(value.value);
             })
             .children(
                 create("input")
-                    .type("checkbox")
+                    .type(InputType.checkbox)
                     .checked(value)
                     .name(name)
                     .build(),
@@ -122,80 +123,69 @@ export class Templates {
                     .attributes("for", name)
                     .children(
                         Templates.icon(icon),
-                        create("span")
-                            .text(path)
-                            .build()
-                    ).build(),
+                        create("span").text(path).build()
+                    ).build()
             ).build();
     }
 
-    static textControl(path, val, onchange) {
-        const value = val.constructor === FjsObservable ? val : signal(val);
+    static textControl(path: string, val: any, onchange: (v: string) => void) {
+        const value = isSignal(val) ? val : signal(val);
 
         return create("div")
             .classes("control", "flex")
             .children(
-                create("span")
-                    .text(path)
-                    .build(),
+                create("span").text(path).build(),
                 create("input")
-                    .type("text")
+                    .type(InputType.text)
                     .value(value)
-                    .onchange(e => {
+                    .onchange((e: any) => {
                         value.value = e.target.value;
                         onchange(e.target.value);
                     }).build(),
             ).build();
     }
 
-    static rangeControl(path, val, icon, onchange) {
-        if (val.constructor === FjsObservable) {
-            throw new Error("Range control can't be used with FjsObservable");
+    static rangeControl(path: string, val: any, icon: string, onchange: (e: any) => void) {
+        if (isSignal(val)) {
+            throw new Error("Range control can't be used with Signal");
         }
         const value = signal(path.startsWith("hue.") ? val / 3.6 : val);
 
         return create("div")
             .classes("control")
             .children(
-                create("label")
-                    .classes("flex")
+                create("label").classes("flex")
                     .children(
                         Templates.icon(icon),
-                        create("span")
-                            .text(path)
-                            .build()
+                        create("span").text(path).build()
                     ).build(),
-                create("div")
-                    .classes("flex")
+                create("div").classes("flex")
                     .children(
                         create("input")
-                            .type("range")
+                            .type(InputType.range)
                             .attributes("min", 0, "max", 100, "step", 1)
                             .value(value)
-                            .oninput(e => {
+                            .oninput((e: any) => {
                                 const base = Number(e.target.value);
                                 onchange(e);
                                 value.value = base;
                             })
                             .build(),
-                        create("span")
-                            .classes("control-value")
-                            .text(value)
-                            .build(),
-                        ifjs(path.startsWith("hue."), Templates.colorIndicator(value, signal(100), signal(50))),
-                        ifjs(path.startsWith("saturation."), Templates.colorIndicator(signal(0), value, signal(50))),
-                        ifjs(path.startsWith("lightness."), Templates.colorIndicator(signal(0), signal(0), value)),
-                        ifjs(path.startsWith("transparency."), Templates.colorIndicator(signal(0), signal(0), value, '')),
+                        create("span").classes("control-value").text(value).build(),
+                        when(path.startsWith("hue."), Templates.colorIndicator(value, signal(100), signal(50))),
+                        when(path.startsWith("saturation."), Templates.colorIndicator(signal(0), value, signal(50))),
+                        when(path.startsWith("lightness."), Templates.colorIndicator(signal(0), signal(0), value)),
+                        when(path.startsWith("transparency."), Templates.colorIndicator(signal(0), signal(0), value, '')),
                     ).build(),
             ).build();
     }
 
-    static rangeIndicator(value, title, strokeColor = "var(--fg)") {
+    static rangeIndicator(value: any, title: string, strokeColor = "var(--fg)") {
         const svgSize = 50;
         const radius = svgSize / 2;
         const strokeWidth = svgSize * 0.25;
         const circumference = Math.PI * radius * 2;
-        const progress = computedSignal(value, val => Math.round(circumference * ((100 - val) / 100)) + "px");
+        const progress = compute((val: number) => Math.round(circumference * ((100 - val) / 100)) + "px", value);
         const padding = 0.125 * svgSize;
 
         const svg = create("svg")
@@ -221,73 +211,59 @@ export class Templates {
             .classes("flex", "range-indicator-container")
             .children(
                 svg,
-                create("span")
-                    .classes("control-value")
-                    .text(value)
-                    .build()
+                create("span").classes("control-value").text(value).build()
             ).title(title)
             .build();
     }
 
-    static historyPanel(generator) {
+    static historyPanel(generator: any) {
         const history = generator.history;
         const activeIndex = generator.activeHistoryIndex;
 
         return create("div")
             .classes("history-panel")
-            .onwheel(e => {
-                const historyPanel = document.querySelector(".history-panel");
-                if (e.deltaX !== 0) {
-                    return;
-                }
+            .onwheel((e: any) => {
+                const historyPanel = document.querySelector(".history-panel") as HTMLElement;
+                if (e.deltaX !== 0) return;
                 const speed = 50;
                 if (e.deltaY < 0) {
-                    if (historyPanel.scrollLeft > 0) {
-                        historyPanel.scrollLeft -= speed;
-                    }
+                    if (historyPanel.scrollLeft > 0) historyPanel.scrollLeft -= speed;
                 } else if (e.deltaY > 0) {
-                    if (historyPanel.scrollLeft < historyPanel.scrollWidth - historyPanel.clientWidth) {
-                        historyPanel.scrollLeft += speed;
-                    }
+                    if (historyPanel.scrollLeft < historyPanel.scrollWidth - historyPanel.clientWidth) historyPanel.scrollLeft += speed;
                 }
             })
             .children(
                 signalMap(history,
-                    create("div")
-                        .classes("flex")
-                        .styles("width", "max-content"),
-                    (item) => {
-                        const index = computedSignal(history, list => list.indexOf(item));
-                        let element;
-                        const activeClass = computedSignal(activeIndex, active => {
-                            if (active === index.value && element) {
-                                element.scrollIntoView(true);
+                    create("div").classes("flex").styles("width", "max-content"),
+                    (item: any) => {
+                        const index = compute((list: any[]) => list.indexOf(item), history);
+                        let element: any;
+                        const activeClass = compute((active: number) => {
+                            if (active === (index as any).value && element) {
+                                (element as HTMLElement).scrollIntoView(true);
                             }
-                            return index.value === active ? "active" : "_";
-                        });
+                            return ((index as any).value === active) ? "active" : "_";
+                        }, activeIndex);
 
                         element = create("div")
                             .classes("history-item", activeClass)
-                            .children(Templates.canvas(item.imageData))
+                            .children(Templates.canvas((item as any).imageData))
                             .onclick(() => {
-                                generator.loadHistoryEntry(index.value);
-                            }).build();
+                                generator.loadHistoryEntry((index as any).value);
+                            })
+                            .build();
                         return element;
                     })
             ).build();
     }
 
-    static canvas(imageBitmap) {
+    static canvas(imageBitmap: ImageBitmap) {
         const canvas = create("canvas")
             .classes("canvas")
             .width("256")
             .height("144")
-            .build();
-
-        /**
-         * @type {CanvasRenderingContext2D}
-         */
-        const ctx = canvas.getContext("2d");
+            .build() as HTMLCanvasElement;
+        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         ctx.drawImage(imageBitmap, 0, 0);
         return canvas;
     }
