@@ -1,3 +1,4 @@
+// @ts-ignore
 const baseDir = import.meta.dir;
 
 function file(path: string) {
@@ -8,21 +9,18 @@ function notFound() {
     return new Response("Not found", {status: 404});
 }
 
-function serveStatic(req: Request, dir: string) {
-    const url = new URL(req.url);
-    const pathname = url.pathname.replace(/^\/+/, "");
-    const fullPath = `${baseDir}/${dir}/${pathname.substring(dir.length + 1)}`;
-    const f = file(fullPath);
-    if ((f as any).size) {
-        return new Response(f);
-    }
-    return notFound();
-}
-
 Bun.serve({
     port: Number(process.env.PORT || 3001),
     fetch(req: Request) {
         const url = new URL(req.url);
+
+        // Root path: serve index.html directly to avoid attempting to read /ui directory
+        if (url.pathname === "/" || url.pathname === "") {
+            const indexFile = file(`${baseDir}/../ui/index.html`);
+            return new Response(indexFile, {
+                headers: {"Content-Type": "text/html; charset=utf-8"}
+            });
+        }
 
         // Serve built assets from /out
         if (url.pathname.startsWith("/out/")) {
@@ -33,14 +31,21 @@ Bun.serve({
 
         // Serve UI static assets (css, images) from /ui or root-relative
         if (url.pathname.startsWith("/ui/")) {
-            const f = file(`${baseDir}/../ui/${url.pathname.substring(4)}`);
+            const subPath = url.pathname.substring(4);
+            // Avoid attempting to read a directory like a file (e.g., "/ui/")
+            if (subPath.length === 0 || subPath.endsWith("/")) {
+                return notFound();
+            }
+            const f = file(`${baseDir}/../ui/${subPath}`);
             if ((f as any).size) return new Response(f);
             return notFound();
         }
-        // Root-relative static files like /styles.css
-        const rootStatic = file(`${baseDir}/../ui${url.pathname}`);
-        if ((rootStatic as any).size) {
-            return new Response(rootStatic);
+        // Root-relative static files like /styles.css (only try when path looks like a file)
+        if (/[.][A-Za-z0-9]+$/.test(url.pathname)) {
+            const rootStatic = file(`${baseDir}/../ui${url.pathname}`);
+            if ((rootStatic as any).size) {
+                return new Response(rootStatic);
+            }
         }
 
         // Root and any other path: serve index.html
