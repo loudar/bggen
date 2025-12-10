@@ -265,7 +265,7 @@ export class Generator {
             items = items.concat(this.getWaves(h, s, l, t, hv, sv, lv, tv, waveCount));
             items = items.sort(() => Math.random() - 0.5);
         }
-        ;(window as any).currentData = {items, grids};
+        (window as any).currentData = {items, grids};
         this.colors.h.value = h;
         this.colors.s.value = s;
         this.colors.l.value = l;

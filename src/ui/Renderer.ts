@@ -34,6 +34,9 @@ export class Renderer {
         const originalComp = this.ctx.globalCompositeOperation;
         const originalAlpha = this.ctx.globalAlpha;
         this.ctx.globalCompositeOperation = 'lighter' as any;
+        // Attenuate additive blending to avoid overly bright results when nodes overlap
+        const attenuation = 0.35;
+        this.ctx.globalAlpha = originalAlpha * attenuation;
         // draw each node as a soft radial gradient circle
         for (const n of nodes) {
             const r = n.radius;
@@ -55,6 +58,9 @@ export class Renderer {
         const originalComp = this.ctx.globalCompositeOperation;
         const originalAlpha = this.ctx.globalAlpha;
         this.ctx.globalCompositeOperation = 'lighter' as any;
+        // Attenuate brightness for gradients as well
+        const attenuation = 0.35;
+        this.ctx.globalAlpha = originalAlpha * attenuation;
         // Use multiple color stops by mapping first two colors as inner/outer; if more, blend proportionally
         for (const n of nodes) {
             const r = n.radius;
