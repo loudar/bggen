@@ -61,6 +61,17 @@ export class Generator {
                 group: "shapes",
                 subgroup: "circles"
             },
+            // Soft blobs (metaballs-like)
+            "blobCount.min": {value: 0, icon: "bubble_chart", group: "shapes", subgroup: "blobs"},
+            "blobCount.max": {value: 10, icon: "bubble_chart", group: "shapes", subgroup: "blobs"},
+            "blobRadius.min": {value: 5, icon: "bubble_chart", group: "shapes", subgroup: "blobs"},
+            "blobRadius.max": {value: 35, icon: "bubble_chart", group: "shapes", subgroup: "blobs"},
+            "blobTypes": {
+                value: {fill: true, gradient: true},
+                icon: "bubble_chart",
+                group: "shapes",
+                subgroup: "blobs"
+            },
             "textCount.min": {value: 0, icon: "text_fields", group: "shapes", subgroup: "texts"},
             "textCount.max": {value: 5, icon: "text_fields", group: "shapes", subgroup: "texts"},
             "textSize.min": {value: 1, icon: "text_fields", group: "shapes", subgroup: "texts"},
@@ -236,6 +247,7 @@ export class Generator {
         } else {
             const rectangleCount = random(this.getSettingValue("rectangleCount.min"), this.getSettingValue("rectangleCount.max"));
             const circleCount = random(this.getSettingValue("circleCount.min"), this.getSettingValue("circleCount.max"));
+            const blobCount = random(this.getSettingValue("blobCount.min"), this.getSettingValue("blobCount.max"));
             const textCount = random(this.getSettingValue("textCount.min"), this.getSettingValue("textCount.max"));
             const waveCount = random(this.getSettingValue("waveCount.min"), this.getSettingValue("waveCount.max"));
             const gridCount = random(this.getSettingValue("gridCount.min"), this.getSettingValue("gridCount.max"));
@@ -248,6 +260,7 @@ export class Generator {
             }
             items = items.concat(this.getRectangles(h, s, l, t, hv, sv, lv, tv, rectangleCount, grids));
             items = items.concat(this.getCircles(h, s, l, t, hv, sv, lv, tv, circleCount, grids));
+            items = items.concat(this.getBlobs(h, s, l, t, hv, sv, lv, tv, blobCount));
             items = items.concat(this.getTexts(h, s, l, t, hv, sv, lv, tv, textCount));
             items = items.concat(this.getWaves(h, s, l, t, hv, sv, lv, tv, waveCount));
             items = items.sort(() => Math.random() - 0.5);
@@ -393,6 +406,32 @@ export class Generator {
             circles.push({shape: "circle", type, colors, x, y, radius: radius / 2, weight});
         }
         return circles;
+    }
+
+    getBlobs(h: number, s: number, l: number, t: number, hv: number, sv: number, lv: number, tv: number, blobCount: number) {
+        const blobs: any[] = [];
+        for (let i = 0; i < blobCount; i++) {
+            const type = randomOf(["fill", "gradient"]);
+            const colors = this.getColorsForType(type as any, h, s, l, t, hv, sv, lv, tv);
+            // pick a cluster center
+            const cx = random(0, this.width);
+            const cy = random(0, this.height);
+            const nodeCount = random(3, 6);
+            const nodes: { x: number, y: number, radius: number }[] = [];
+            const baseRadius = (random(this.getSettingValue("blobRadius.min"), this.getSettingValue("blobRadius.max")) / 100) * this.width;
+            for (let n = 0; n < nodeCount; n++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = baseRadius * 0.3 * Math.random();
+                const r = baseRadius * (0.4 + Math.random() * 0.8);
+                nodes.push({
+                    x: cx + Math.cos(angle) * dist,
+                    y: cy + Math.sin(angle) * dist,
+                    radius: r
+                });
+            }
+            blobs.push({shape: "blob", type, colors, nodes});
+        }
+        return blobs;
     }
 
     getSettingValue(path: string) {
